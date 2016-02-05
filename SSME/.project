@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>SSME</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>Starsector</name>
+			<type>2</type>
+			<locationURI>Starsector</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>Starsector</name>
+			<value>file:/C:/Program%20Files%20(x86)/Fractal%20Softworks/Starsector</value>
+		</variable>
+	</variableList>
+</projectDescription>

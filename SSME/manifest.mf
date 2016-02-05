@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Sealed: true
+Main-Class: org.tjj.starsector.ssme.StarsectorModExpander
+SSME-Version: 0.1
+
