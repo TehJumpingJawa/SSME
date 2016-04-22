@@ -287,8 +287,14 @@ public class ClassMapping implements Opcodes {
 			else {
 				MethodInsnNode invokeVirtual = (MethodInsnNode) instruction;
 				
-				String oldName = methodMap.replace(new Method(invokeVirtual.name, invokeVirtual.desc, null), newName);
-//				System.out.println(getNewName() + ": Bridge rename. \"" + oldName  + " " + invokeVirtual.desc + "\" now called \"" + newName + "\" " + methodNode.desc);
+				//Map.replace(...) is Java 1.8+ :( 
+//				String oldName = methodMap.replace(new Method(invokeVirtual.name, invokeVirtual.desc, null), newName);
+				
+				Method method = new Method(invokeVirtual.name, invokeVirtual.desc, null);
+				if (methodMap.containsKey(method)) {
+				     String oldName = methodMap.put(method, newName);
+//						System.out.println(getNewName() + ": Bridge rename. \"" + oldName  + " " + invokeVirtual.desc + "\" now called \"" + newName + "\" " + methodNode.desc);
+				}
 			}
 		}
 	}
