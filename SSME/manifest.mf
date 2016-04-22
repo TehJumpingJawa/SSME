@@ -1,5 +1,7 @@
 Manifest-Version: 1.0
 Sealed: true
+Premain-Class: org.tjj.starsector.ssme.agent.Agent
+Can-Retransform-Classes: true
 Main-Class: org.tjj.starsector.ssme.StarsectorModExpander
 SSME-Version: 0.1
 

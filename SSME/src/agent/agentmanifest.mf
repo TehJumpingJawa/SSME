@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Premain-Class: org.tjj.starsector.ssme.agent.Agent
-Created-By: 1.6.0_06 (Sun Microsystems Inc.)
-Can-Retransform-Classes: true
