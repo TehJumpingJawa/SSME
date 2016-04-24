@@ -6,29 +6,11 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="lib/asm-5.0_BETA/lib/asm-5.0_BETA.jar"/>
-	<classpathentry kind="lib" path="lib/asm-5.0_BETA/lib/asm-analysis-5.0_BETA.jar"/>
-	<classpathentry kind="lib" path="lib/asm-5.0_BETA/lib/asm-commons-5.0_BETA.jar"/>
-	<classpathentry kind="lib" path="lib/asm-5.0_BETA/lib/asm-tree-5.0_BETA.jar"/>
-	<classpathentry kind="lib" path="lib/asm-5.0_BETA/lib/asm-util-5.0_BETA.jar"/>
-	<classpathentry kind="lib" path="lib/asm-5.0_BETA/lib/asm-xml-5.0_BETA.jar"/>
-	<classpathentry kind="lib" path="lib/javassist-rel_3_19_0_ga/lib/javassist.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/commons-compiler-jdk.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/commons-compiler.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/fs.common_obf.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/fs.sound_obf.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/janino.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/jinput.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/jogg-0.0.7.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/jorbis-0.0.15.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/json.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/log4j-1.2.9.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/lwjgl_util.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/lwjgl.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/starfarer_obf.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/starfarer.api.jar"/>
-	<classpathentry kind="lib" path="Starsector/starsector-core/xstream-1.4.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>
