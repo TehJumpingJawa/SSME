@@ -5,63 +5,8 @@
 	<name>SSME</name>
 	<description>Starsector Mod Extender</description>
 
-	<!-- <properties>
-		<starsector-core>C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core</starsector-core>
-	</properties>
-	 -->
 	<build>
-		<!-- <pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.codehaus.mojo</groupId>
-										<artifactId>properties-maven-plugin</artifactId>
-										<versionRange>[1.0.0,)</versionRange>
-										<goals>
-											<goal>read-project-properties</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute>
-											<runOnIncremental>true</runOnIncremental>
-											<runOnConfiguration>true</runOnConfiguration>
-										</execute>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>-->
-
-
 		<plugins>
-			<!-- <plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0.0</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>read-project-properties</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<files>
-						<file>local.properties</file>
-					</files>
-				</configuration>
-			</plugin>-->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.3</version>
