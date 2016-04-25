@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.tjj.starsector.ssme</groupId>
 	<artifactId>ssme</artifactId>
@@ -32,76 +31,106 @@
 			<groupId>ss.libs</groupId>
 			<artifactId>compiler-jdk</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/commons-compiler-jdk.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>compiler</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/commons-compiler.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>common_obf</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/fs.common_obf.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>sound_obf</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/fs.sound_obf.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>janino</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/janino.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>jinput</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/jinput.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>jogg</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/jogg-0.0.7.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>jorbis</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/jorbis-0.0.15.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>json</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/json.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/log4j-1.2.9.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>lwjgl_util</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/lwjgl_util.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>lwjgl</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/lwjgl.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>starfarer_obf</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/starfarer_obf.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>starfarer.api</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/starfarer.api.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>ss.libs</groupId>
 			<artifactId>xstream</artifactId>
 			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${starsector-core}/xstream-1.4.2.jar</systemPath>
 		</dependency>
 	</dependencies>
 
@@ -117,11 +146,11 @@
 							<pluginExecutions>
 								<pluginExecution>
 									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-install-plugin</artifactId>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>properties-maven-plugin</artifactId>
 										<versionRange>[1.0.0,)</versionRange>
 										<goals>
-											<goal>install-file</goal>
+											<goal>read-project-properties</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
@@ -135,248 +164,57 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
-
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-install-plugin</artifactId>
-					<version>2.5.2</version>
-					<executions>
-						<execution>
-							<id>install-1</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>compiler-jdk</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/commons-compiler-jdk.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-2</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>compiler</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/commons-compiler.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-3</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>common_obf</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/fs.common_obf.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-4</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>sound_obf</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/fs.sound_obf.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-5</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>janino</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/janino.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-6</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>jinput</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/jinput.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-7</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>jogg</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/jogg-0.0.7.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-8</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>jorbis</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/jorbis-0.0.15.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-9</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>json</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/json.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-10</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>log4j</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/log4j-1.2.9.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>						
-						<execution>
-							<id>install-11</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>lwjgl_util</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/lwjgl_util.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-12</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>lwjgl</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/lwjgl.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-13</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>starfarer_obf</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/starfarer_obf.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-14</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>starfarer.api</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/starfarer.api.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<id>install-15</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<phase>validate</phase>
-							<configuration>
-								<groupId>ss.libs</groupId>
-								<artifactId>xstream</artifactId>
-								<version>1.0</version>
-								<packaging>jar</packaging>
-								<file>${starsector-core}/xstream-1.4.2.jar</file>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.3</version>
-					<configuration>
-						<source>1.7</source>
-						<target>1.7</target>
-					</configuration>
-				</plugin>
 			</plugins>
 		</pluginManagement>
+
+
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<files>
+						<file>local.properties</file>
+					</files>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>project</descriptorRef>
+					</descriptorRefs>
+					<finalName>SSME-${pom.version}</finalName>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
 	</build>
 </project>
