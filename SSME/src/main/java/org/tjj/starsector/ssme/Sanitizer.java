@@ -22,6 +22,7 @@ import org.tjj.starsector.ssme.sanitizer.ClassMapping;
 import org.tjj.starsector.ssme.sanitizer.PackageMapping;
 import org.tjj.starsector.ssme.sanitizer.SanitizedWriter;
 import org.tjj.starsector.ssme.sanitizer.SanitizerContext;
+import org.tjj.starsector.ssme.sanitizer.SanitizingVisitor;
 
 public class Sanitizer implements SanitizerContext {
 

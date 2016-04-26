@@ -1,4 +1,4 @@
-package org.tjj.starsector.ssme;
+package org.tjj.starsector.ssme.sanitizer;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -9,9 +9,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureWriter;
-import org.tjj.starsector.ssme.sanitizer.ClassMapping;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.tjj.starsector.ssme.Sanitizer;
 
 /**
  * This Visitor remaps the names of obfuscated fields & methods 
@@ -275,7 +273,7 @@ public class SanitizingVisitor extends ClassVisitor implements Opcodes {
 		}
 
 		@Override
-		public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+		public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 			if(owner.startsWith("[")) {
 				// do nothing.
 				//array.clone();
@@ -293,7 +291,7 @@ public class SanitizingVisitor extends ClassVisitor implements Opcodes {
 	//				System.out.println("Not deobfuscating owner in visitFieldInsn: " + owner);
 				}
 			}
-			super.visitMethodInsn(opcode, owner, name, desc);
+			super.visitMethodInsn(opcode, owner, name, desc, itf);
 		}
 
 		@Override
