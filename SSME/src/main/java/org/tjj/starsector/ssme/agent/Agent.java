@@ -14,7 +14,7 @@ public class Agent {
 	}
 	
 	public static void premain(String agentArgs, Instrumentation inst) {
-		inst.addTransformer(TransformerProxy.getInstance(inst), true);
+		inst.addTransformer(TransformerProxy.getInstance(inst), false);
 	}
 
 }

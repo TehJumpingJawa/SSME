@@ -16,13 +16,29 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-        		<artifactId>maven-jar-plugin</artifactId>
-        		<version>2.6</version>
-        		<configuration>
-        		<archive>
-        		<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
-        		</archive>
-        		</configuration>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifestFile>src/main/manifest/main_manifest.mf</manifestFile>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>agent</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<phase>generate-test-resources</phase>
+						<configuration>
+						<archive>
+							<manifestFile>src/main/manifest/agent_manifest.mf</manifestFile>
+						</archive>
+						<includes><include>org/tjj/starsector/ssme/agent/Agent.class</include></includes>
+						<jarName>Agent</jarName>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
@@ -30,7 +46,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
-				<descriptor>src/assembly/assembly.xml</descriptor>
+					<descriptor>src/assembly/assembly.xml</descriptor>
 				</configuration>
 				<executions>
 					<execution>
@@ -43,8 +59,40 @@
 			</plugin>
 
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-jar-plugin</artifactId>
+										<versionRange>[2.6,)</versionRange>
+										<goals>
+											<goal>jar</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+										<runOnConfiguration>true</runOnConfiguration>
+										<runOnIncremental>true</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
-	
+
 
 	<dependencies>
 		<dependency>
@@ -71,12 +119,12 @@
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-commons</artifactId>
 			<version>${asm-version}</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-analysis</artifactId>
 			<version>${asm-version}</version>
-		</dependency>		
+		</dependency>
 
 		<dependency>
 			<groupId>org.javassist</groupId>

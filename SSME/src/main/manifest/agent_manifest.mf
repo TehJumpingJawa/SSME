@@ -1,0 +1,2 @@
+Sealed: true
+Premain-Class: org.tjj.starsector.ssme.agent.Agent
