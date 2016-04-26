@@ -19,7 +19,7 @@
         		<artifactId>maven-jar-plugin</artifactId>
         		<configuration>
         		<archive>
-        		<manifestFile>src/manifest/manifest.mf</manifestFile>
+        		<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
         		</archive>
         		</configuration>
 			</plugin>

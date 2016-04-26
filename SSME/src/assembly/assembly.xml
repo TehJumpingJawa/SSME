@@ -11,7 +11,7 @@
   
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/scripts</directory>
+      <directory>${project.build.scriptSourceDirectory}</directory>
       <outputDirectory>.</outputDirectory>
       <filtered>true</filtered>
       <fileMode>0755</fileMode>
