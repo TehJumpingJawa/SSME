@@ -1,11 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.tjj.starsector.ssme</groupId>
-	<artifactId>localsettings</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>dependency_versions</artifactId>
+	<version>1</version>
 
 	<packaging>pom</packaging>
 	<properties>
-		<starsector-core>C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core</starsector-core>
+		<asm-version>5.1</asm-version>
+		<javassist-version>3.20.0-GA</javassist-version>
 	</properties>
+	
+    <parent>
+		<groupId>org.tjj.starsector.ssme</groupId>
+		<artifactId>local_settings</artifactId>
+		<relativePath>local_settings.xml</relativePath>
+		<version>1</version>
+	</parent>	
 </project>

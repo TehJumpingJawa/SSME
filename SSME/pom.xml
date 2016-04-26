@@ -1,8 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>ssme</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>SSME</name>
+	<version>0.0.1</version>
 	<description>Starsector Mod Extender</description>
 
 	<build>
@@ -15,15 +14,21 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-jar-plugin</artifactId>
+        		<configuration>
+        		<archive>
+        		<manifestFile>src/manifest/manifest.mf</manifestFile>
+        		</archive>
+        		</configuration>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<descriptorRefs>
-						<descriptorRef>project</descriptorRef>
-					</descriptorRefs>
-					<finalName>SSME-${pom.version}</finalName>
+				<descriptor>src/assembly/assembly.xml</descriptor>
 				</configuration>
 				<executions>
 					<execution>
@@ -43,17 +48,38 @@
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm</artifactId>
-			<version>5.1</version>
+			<version>${asm-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm-tree</artifactId>
-			<version>5.1</version>
+			<version>${asm-version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-xml</artifactId>
+			<version>${asm-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-util</artifactId>
+			<version>${asm-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-commons</artifactId>
+			<version>${asm-version}</version>
+		</dependency>		
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-analysis</artifactId>
+			<version>${asm-version}</version>
+		</dependency>		
+
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
-			<version>3.20.0-GA</version>
+			<version>${javassist-version}</version>
 		</dependency>
 
 		<dependency>
@@ -163,10 +189,10 @@
 		</dependency>
 	</dependencies>
 
-    <parent>
+	<parent>
 		<groupId>org.tjj.starsector.ssme</groupId>
-		<artifactId>localsettings</artifactId>
-		<relativePath>localsettings.xml</relativePath>
-		<version>1.0.0</version>
+		<artifactId>dependency_versions</artifactId>
+		<version>1</version>
+		<relativePath>dependency_versions.xml</relativePath>
 	</parent>
 </project>
