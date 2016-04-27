@@ -1,13 +1,13 @@
 package org.tjj.starsector.ssme.javassist;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+
+import org.tjj.starsector.ssme.Utils;
 
 import javassist.CannotCompileException;
 import javassist.CtConstructor;
 import javassist.NotFoundException;
 import javassist.expr.NewExpr;
-
-import org.tjj.starsector.ssme.Utils;
 
 public class ConstructorFinder extends BehaviorFinder<CtConstructor> {
 
@@ -23,7 +23,7 @@ public class ConstructorFinder extends BehaviorFinder<CtConstructor> {
 		
 			if(Utils.compare(constructor, target)) {
 				if(matches==null) {
-					matches = new ArrayList<>();
+					matches = new HashSet<>();
 				}
 				matches.add(constructor);
 			}

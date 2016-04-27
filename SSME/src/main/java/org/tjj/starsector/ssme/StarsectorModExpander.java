@@ -18,22 +18,24 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.CtNewMethod;
-import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import org.tjj.starsector.ssme.javassist.AccessModifier;
 import org.tjj.starsector.ssme.javassist.BehaviourModifier;
 import org.tjj.starsector.ssme.javassist.BetterClassPool;
+import org.tjj.starsector.ssme.javassist.MethodFinder;
 import org.tjj.starsector.ssme.javassist.MethodPrototype;
 import org.tjj.starsector.ssme.ui.AuthorizationUI;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.CtNewMethod;
+import javassist.NotFoundException;
+import javassist.bytecode.BadBytecode;
 
 public class StarsectorModExpander {
 
@@ -99,11 +101,47 @@ public class StarsectorModExpander {
 	 * @throws CannotCompileException 
 	 */
 	private static void doLauncherPreferencesTransformation(ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass launcherUI = cp.get("com.fs.starfarer.launcher.StarfarerLauncherUI");
 		
-		CtMethod method = Utils.findDeclaredMethods(launcherUI, new MethodPrototype(null, new CtClass[] { cp.get("java.awt.event.ActionListener"), CtClass.booleanType, cp.get("java.lang.String"), CtClass.floatType}, cp.get("javax.swing.JFrame"))).getMatch();
+		if(false) {
+			
+			//old code (will be used to base the legacy launcher hooks upon)
+			CtClass launcherUiType = cp.get("com.fs.starfarer.launcher.StarfarerLauncherUI");
+			
+			CtMethod method = Utils.findDeclaredMethods(launcherUiType, new MethodPrototype(null, new CtClass[] { cp.get("java.awt.event.ActionListener"), CtClass.booleanType, cp.get("java.lang.String"), CtClass.floatType}, cp.get("javax.swing.JFrame"))).getMatch();
+	
+			method.insertAfter("{" + StarsectorModExpander.class.getName()+ ".receiveLauncherJFrame($_);}");
+		}
+		else {
+			CtClass glLauncher = cp.get("com.fs.starfarer.launcher.opengl.GLLauncher");
+			
+			CtMethod createLaunchUI = glLauncher.getDeclaredMethod("createLaunchUI");
+			
+			CtField modsField = glLauncher.getField("mods");
+			CtClass uiComponentType = modsField.getType();
 
-		method.insertAfter("{" + StarsectorModExpander.class.getName()+ ".receiveLauncherJFrame($_);}");
+			CtClass stringType = cp.get("java.lang.String");
+			CtClass alignmentType = cp.get("com.fs.starfarer.api.ui.Alignment");
+			
+			
+			MethodFinder uiComponentFactoryMethodFinder = new MethodFinder(
+					new MethodPrototype(
+							EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(BehaviourModifier.STATIC), null,
+							null, new CtClass[]{stringType, stringType, alignmentType, null, null}, uiComponentType, new CtClass[0]));
+			
+			createLaunchUI.instrument(uiComponentFactoryMethodFinder);
+			
+			CtMethod match = uiComponentFactoryMethodFinder.getMatch();
+			
+			System.out.println("found match: " + match);
+			
+//			String ssmeConfigCode = 
+			
+			
+					
+//			createLauncherUI.insertAfter(ssmeConfigCode);
+			
+			
+		}
 	}
 	
 	/**
