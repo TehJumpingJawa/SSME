@@ -23,6 +23,7 @@ import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.tjj.starsector.ssme.Utils;
 import org.tjj.starsector.ssme.Utils.InternalClassName;
 import org.tjj.starsector.ssme.asm.KeyWords;
 
@@ -121,9 +122,9 @@ public class ClassMapping implements Opcodes {
 						ClassMapping outerClass = context.get(found.outerName);
 
 						// we don't need to deobfuscate the package, it's already been done for the outer class, so we just use that.
-						final String deobfuscatedPackagePath = InternalClassName.getPackage(outerClass.getNewName());
+						final String deobfuscatedPackagePath = Utils.InternalClassName.getPackage(outerClass.getNewName());
 
-						newName = deobfuscatedPackagePath + makeObfuscatedName() + "from" + InternalClassName.getSimpleName(outerClass.getNewName()).replace('$', '_');
+						newName = deobfuscatedPackagePath + makeObfuscatedName() + "from" + Utils.InternalClassName.getSimpleName(outerClass.getNewName()).replace('$', '_');
 						if(!context.registerOutputName(newName)) {
 							throw new RuntimeException("unexpected class naming collision: " + newName);
 						}
@@ -153,9 +154,9 @@ public class ClassMapping implements Opcodes {
 				}
 				else {
 					// must be a top-level class 
-					String simpleClassname =  InternalClassName.getSimpleName(oldName);
+					String simpleClassname =  Utils.InternalClassName.getSimpleName(oldName);
 					
-					final String deobfuscatedPackagePath = deobfuscatePackage(InternalClassName.getPackage(oldName));
+					final String deobfuscatedPackagePath = deobfuscatePackage(Utils.InternalClassName.getPackage(oldName));
 					
 					String proposedNewName = deobfuscatedPackagePath + simpleClassname;
 					if(isObfuscatedClass(context, proposedNewName, simpleClassname, false) || !context.registerOutputName(proposedNewName)) {

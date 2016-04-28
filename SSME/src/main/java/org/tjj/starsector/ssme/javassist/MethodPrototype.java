@@ -7,8 +7,8 @@ import javassist.CtClass;
 public class MethodPrototype {
 
 	public final EnumSet<AccessModifier> allowedAccessModifiers;
-	public final EnumSet<BehaviourModifier> includedBehaviourModifiers;
-	public final EnumSet<BehaviourModifier> excludedBehaviourModifiers;
+	public final EnumSet<NonAccessModifier> includedNonAccessModifiers;
+	public final EnumSet<NonAccessModifier> excludedNonAccessModifiers;
 	public final String methodName;
 	public final CtClass [] parameters;
 	public final CtClass returnType;
@@ -27,10 +27,10 @@ public class MethodPrototype {
 	 * @param parameters
 	 * @param thrownExceptions 
 	 */
-	public MethodPrototype(EnumSet<AccessModifier> allowedAccessModifiers, EnumSet<BehaviourModifier> includedBehaviourModifiers, EnumSet<BehaviourModifier> excludedBehaviourModifiers, String methodName, CtClass [] parameters, CtClass returnType, CtClass [] thrownExceptions) {
+	public MethodPrototype(EnumSet<AccessModifier> allowedAccessModifiers, EnumSet<NonAccessModifier> includedNonAccessModifiers, EnumSet<NonAccessModifier> excludedNonAccessModifiers, String methodName, CtClass [] parameters, CtClass returnType, CtClass [] thrownExceptions) {
 		this.allowedAccessModifiers = allowedAccessModifiers;
-		this.includedBehaviourModifiers = includedBehaviourModifiers;
-		this.excludedBehaviourModifiers = excludedBehaviourModifiers;
+		this.includedNonAccessModifiers = includedNonAccessModifiers;
+		this.excludedNonAccessModifiers = excludedNonAccessModifiers;
 		this.methodName = methodName;
 		this.returnType = returnType;
 		this.parameters = parameters;
@@ -41,7 +41,7 @@ public class MethodPrototype {
 		this(null, null, null, methodName, parameters, returnType, null);
 	}
 	
-	public MethodPrototype(EnumSet<AccessModifier> allowedAccessModifiers, EnumSet<BehaviourModifier> includedBehaviourModifiers, String methodName, CtClass [] parameters, CtClass returnType) {
+	public MethodPrototype(EnumSet<AccessModifier> allowedAccessModifiers, EnumSet<NonAccessModifier> includedBehaviourModifiers, String methodName, CtClass [] parameters, CtClass returnType) {
 		this(allowedAccessModifiers, includedBehaviourModifiers, null, methodName, parameters, returnType, null);
 	}
 

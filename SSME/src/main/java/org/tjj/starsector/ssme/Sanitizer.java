@@ -204,7 +204,7 @@ public class Sanitizer implements SanitizerContext {
 		Map<String,String> mapping = new HashMap<>();
 		
 		for (String key : workingSet) {
-			mapping.put(InternalClassName.toBinaryName(key), InternalClassName.toBinaryName(processedClasses.get(key).getNewName()));
+			mapping.put(Utils.InternalClassName.toBinaryName(key), Utils.InternalClassName.toBinaryName(processedClasses.get(key).getNewName()));
 		}
 		
 		return mapping;
@@ -221,7 +221,7 @@ public class Sanitizer implements SanitizerContext {
 			
 			cm.classNode.accept(new SanitizingVisitor(Sanitizer.this, cw));
 			final byte [] bytes = cw.toByteArray();
-			pool.saveTransformation(InternalClassName.toBinaryName(cm.getNewName()), bytes);
+			pool.saveTransformation(Utils.InternalClassName.toBinaryName(cm.getNewName()), bytes);
 			
 			if(writer!=null) {
 				writer.addClass(cm.getNewName(), bytes);
@@ -285,7 +285,7 @@ public class Sanitizer implements SanitizerContext {
 
 	@Override
 	public ClassNode load(String classname) throws ClassNotFoundException, IOException {
-		ClassReader cr = new ClassReader(pool.getClass(InternalClassName.toBinaryName(classname)));
+		ClassReader cr = new ClassReader(pool.getClass(Utils.InternalClassName.toBinaryName(classname)));
 		
 		ClassNode classNode = new ClassNode();
 		cr.accept(classNode, 0);

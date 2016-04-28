@@ -31,7 +31,7 @@ final class TransformingClassLoader extends ClassLoader {
 		
 		// if the class has already been loaded, or there are no transformed bytes for the given class
 		// then defer it to the super implementation (which in turn defers to the parent)
-		if(TransformerProxy.getInstance(null).isLoaded(BinaryClassName.toInternalName(name)) || (bytes = cp.getTransformedClass(name))==null) {
+		if(TransformerProxy.getInstance(null).isLoaded(Utils.BinaryClassName.toInternalName(name)) || (bytes = cp.getTransformedClass(name))==null) {
 //			System.out.println("defering class " + name);
 			result = super.loadClass(name, resolve);
 		}

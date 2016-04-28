@@ -73,7 +73,7 @@ public class TransformerProxy implements ClassFileTransformer {
 			return null;
 		}
 		
-		String binaryName = InternalClassName.toBinaryName(className);
+		String binaryName = Utils.InternalClassName.toBinaryName(className);
 		
 		boolean changed = false;
 		for (ClassTransformer transformer : transformers) {

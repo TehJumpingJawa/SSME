@@ -131,7 +131,7 @@ class TransformationManager implements ClassProvider {
 		byte[] b = transformedClassData.get(classname);
 
 		if(b==null) {
-			returnValue = loader.getResourceAsStream(BinaryClassName.toFilename(classname));
+			returnValue = loader.getResourceAsStream(Utils.BinaryClassName.toFilename(classname));
 			if(returnValue==null) {
 				throw new ClassNotFoundException(classname + " could not be found on the classpath");
 			}
@@ -147,7 +147,7 @@ class TransformationManager implements ClassProvider {
 		if(transformedClassData.containsKey(classname)) {
 			return true;
 		}
-		if(loader.getResource(BinaryClassName.toFilename(classname))!=null) {
+		if(loader.getResource(Utils.BinaryClassName.toFilename(classname))!=null) {
 			return true;
 		}
 		return false;
@@ -170,7 +170,7 @@ class TransformationManager implements ClassProvider {
 		if(readOnly) throw new IllegalStateException("Early transformations are complete, and no-longer available.");
 		
 		byte[] b = transformedClassData.get(classname);
-		if(b!=null && TransformerProxy.getInstance(null).isLoaded(BinaryClassName.toInternalName(classname))) {
+		if(b!=null && TransformerProxy.getInstance(null).isLoaded(Utils.BinaryClassName.toInternalName(classname))) {
 			throw new ClassAlreadyLoadedException("Cannot save transformations to " + classname +", it has already been loaded into the JVM.");
 		}
 		else {

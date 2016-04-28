@@ -3,7 +3,7 @@ package org.tjj.starsector.ssme.javassist;
 import java.lang.reflect.Modifier;
 import java.util.EnumSet;
 
-public enum BehaviourModifier {
+public enum NonAccessModifier {
 	STATIC("static"),
 	FINAL("final"),
 	SYNCHRONIZED("synchronized"),
@@ -17,13 +17,13 @@ public enum BehaviourModifier {
 
 	private String name;
 	
-	BehaviourModifier(String name) {
+	NonAccessModifier(String name) {
 		this.name = name;
 	}
 	
-	public static BehaviourModifier fromString(String string) {
-		BehaviourModifier [] values = BehaviourModifier.values();
-		for (BehaviourModifier behaviourModifier : values) {
+	public static NonAccessModifier fromString(String string) {
+		NonAccessModifier [] values = NonAccessModifier.values();
+		for (NonAccessModifier behaviourModifier : values) {
 			if(string.equals(behaviourModifier.name)) {
 				return behaviourModifier;
 			}
@@ -31,9 +31,9 @@ public enum BehaviourModifier {
 		throw new IllegalArgumentException(string + " not a valid BehaviourModifier");
 	}
 	
-	public static EnumSet<BehaviourModifier> fromStringList(String string) {
+	public static EnumSet<NonAccessModifier> fromStringList(String string) {
 		String [] modifier = string.trim().split(" +");
-		EnumSet<BehaviourModifier> set = EnumSet.noneOf(BehaviourModifier.class);
+		EnumSet<NonAccessModifier> set = EnumSet.noneOf(NonAccessModifier.class);
 		for (String string2 : modifier) {
 			set.add(fromString(string2));
 		}
@@ -41,14 +41,14 @@ public enum BehaviourModifier {
 	}	
 	
 	
-	public static EnumSet<BehaviourModifier> fromJvmModifiers(int bits) {
+	public static EnumSet<NonAccessModifier> fromJvmModifiers(int bits) {
 		final int BEHAVIOUR_MODIFIERS_MASK = Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.VOLATILE | Modifier.TRANSIENT | Modifier.NATIVE | Modifier.INTERFACE | Modifier.ABSTRACT | Modifier.STRICT;
 		bits&=BEHAVIOUR_MODIFIERS_MASK;
 		// the STATIC bit is now in the right-most('1') position.
 		bits>>>=3;
 		
-		EnumSet<BehaviourModifier> set = EnumSet.noneOf(BehaviourModifier.class);
-		BehaviourModifier [] behaviours = BehaviourModifier.values(); 
+		EnumSet<NonAccessModifier> set = EnumSet.noneOf(NonAccessModifier.class);
+		NonAccessModifier [] behaviours = NonAccessModifier.values(); 
 
 		int ordinal = 0;
 		while(bits!=0) {

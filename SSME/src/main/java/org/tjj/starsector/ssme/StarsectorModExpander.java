@@ -22,7 +22,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import org.tjj.starsector.ssme.javassist.AccessModifier;
-import org.tjj.starsector.ssme.javassist.BehaviourModifier;
+import org.tjj.starsector.ssme.javassist.NonAccessModifier;
+import org.tjj.starsector.ssme.javassist.UiEditor;
+import org.tjj.starsector.ssme.javassist.JavassistUtils;
 import org.tjj.starsector.ssme.javassist.BetterClassPool;
 import org.tjj.starsector.ssme.javassist.MethodFinder;
 import org.tjj.starsector.ssme.javassist.MethodPrototype;
@@ -51,12 +53,12 @@ public class StarsectorModExpander {
 	private static void doActionPerformedTransformation(ClassPool cp) throws NotFoundException, CannotCompileException {
 		CtClass modManager = cp.get("com.fs.starfarer.launcher.ModManager");
 		
-		List<CtMethod> matches = Utils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC),EnumSet.of(BehaviourModifier.SYNCHRONIZED, BehaviourModifier.STATIC),"getInstance", new CtClass[0], cp.get("com.fs.starfarer.launcher.ModManager")));
+		List<CtMethod> matches = JavassistUtils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC),EnumSet.of(NonAccessModifier.SYNCHRONIZED, NonAccessModifier.STATIC),"getInstance", new CtClass[0], cp.get("com.fs.starfarer.launcher.ModManager")));
 		
 		if(matches.size()!=1) throw new NotFoundException("Expected 1 'getInstance' method, found:" + matches);
 		CtMethod getModManager = matches.get(0);
 		
-		matches = Utils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(BehaviourModifier.SYNCHRONIZED),"getEnabledMods", new CtClass[0], cp.get("java.util.List")));
+		matches = JavassistUtils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(NonAccessModifier.SYNCHRONIZED),"getEnabledMods", new CtClass[0], cp.get("java.util.List")));
 		if(matches.size()!=1) throw new NotFoundException("Expected 1 'getEnabledMods' returning List, found: " + matches);
 		
 		CtMethod getActiveMods = matches.get(0);
@@ -97,51 +99,58 @@ public class StarsectorModExpander {
 	 * Inserts some UI elements into the launcher to allow user configuration of the stored SSME authorizations.
 	 * (basically a front-end to ssmeAuth.json) 
 	 * @param cp
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 * @throws NotFoundException 
 	 * @throws CannotCompileException 
 	 */
-	private static void doLauncherPreferencesTransformation(ClassPool cp) throws NotFoundException, CannotCompileException {
+	private static void doLauncherPreferencesTransformation(ClassProvider cc) throws ClassNotFoundException, IOException {
 		
-		if(false) {
-			
-			//old code (will be used to base the legacy launcher hooks upon)
-			CtClass launcherUiType = cp.get("com.fs.starfarer.launcher.StarfarerLauncherUI");
-			
-			CtMethod method = Utils.findDeclaredMethods(launcherUiType, new MethodPrototype(null, new CtClass[] { cp.get("java.awt.event.ActionListener"), CtClass.booleanType, cp.get("java.lang.String"), CtClass.floatType}, cp.get("javax.swing.JFrame"))).getMatch();
-	
-			method.insertAfter("{" + StarsectorModExpander.class.getName()+ ".receiveLauncherJFrame($_);}");
-		}
-		else {
-			CtClass glLauncher = cp.get("com.fs.starfarer.launcher.opengl.GLLauncher");
-			
-			CtMethod createLaunchUI = glLauncher.getDeclaredMethod("createLaunchUI");
-			
-			CtField modsField = glLauncher.getField("mods");
-			CtClass uiComponentType = modsField.getType();
-
-			CtClass stringType = cp.get("java.lang.String");
-			CtClass alignmentType = cp.get("com.fs.starfarer.api.ui.Alignment");
-			
-			
-			MethodFinder uiComponentFactoryMethodFinder = new MethodFinder(
-					new MethodPrototype(
-							EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(BehaviourModifier.STATIC), null,
-							null, new CtClass[]{stringType, stringType, alignmentType, null, null}, uiComponentType, new CtClass[0]));
-			
-			createLaunchUI.instrument(uiComponentFactoryMethodFinder);
-			
-			CtMethod match = uiComponentFactoryMethodFinder.getMatch();
-			
-			System.out.println("found match: " + match);
-			
-//			String ssmeConfigCode = 
-			
-			
-					
-//			createLauncherUI.insertAfter(ssmeConfigCode);
-			
-			
-		}
+		new UiEditor(cc);
+		
+//		if(false) {
+//			
+//			//old code (will be used to base the legacy launcher hooks upon)
+//			CtClass launcherUiType = cp.get("com.fs.starfarer.launcher.StarfarerLauncherUI");
+//			
+//			CtMethod method = Utils.findDeclaredMethods(launcherUiType, new MethodPrototype(null, new CtClass[] { cp.get("java.awt.event.ActionListener"), CtClass.booleanType, cp.get("java.lang.String"), CtClass.floatType}, cp.get("javax.swing.JFrame"))).getMatch();
+//	
+//			method.insertAfter("{" + StarsectorModExpander.class.getName()+ ".receiveLauncherJFrame($_);}");
+//		}
+//		else {
+//			CtClass glLauncher = cp.get("com.fs.starfarer.launcher.opengl.GLLauncher");
+//			
+//			CtMethod createLaunchUI = glLauncher.getDeclaredMethod("createLaunchUI");
+//			
+//			CtField modsField = glLauncher.getField("mods");
+//			CtClass uiComponentType = modsField.getType();
+//
+//			CtClass stringType = cp.get("java.lang.String");
+//			CtClass alignmentType = cp.get("com.fs.starfarer.api.ui.Alignment");
+//			
+//			
+//			MethodFinder uiComponentFactoryMethodFinder = new MethodFinder(
+//					new MethodPrototype(
+//							EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(NonAccessModifier.STATIC), null,
+//							null, new CtClass[]{stringType, stringType, alignmentType, null, null}, uiComponentType, new CtClass[0]));
+//			
+//			createLaunchUI.instrument(uiComponentFactoryMethodFinder);
+//			
+//			CtMethod factoryMethod = uiComponentFactoryMethodFinder.getMatch();
+//			
+//			glLauncher.addField(CtField.make("private " + uiComponentType.getName() + " ssme;", glLauncher));
+//			
+//			String ssmeConfigCode = "{this.ssme = " + factoryMethod.getDeclaringClass().getName() + "." + factoryMethod.getName() + "(" +
+//					"\"SSME...\", \"graphics/fonts/orbitron24aabold.fnt\",com.fs.starfarer.api.ui.Alignment.MID,null,this);\n"
+//					+ "this.panel.add(this.ssme).setSize(100F,20F).belowLeft(this.mods, 5F);\n"
+//					+ "System.out.println(\"insertion complete\");}";
+//			
+//			
+//					
+//			createLaunchUI.insertAfter(ssmeConfigCode);
+//			
+//			
+//		}
 	}
 	
 	/**
@@ -234,16 +243,16 @@ public class StarsectorModExpander {
 		
 		TransformationManager cc = TransformationManager.getInstance();
 		
-		BetterClassPool cp = new BetterClassPool(cc);
-
 		Sanitizer s = new Sanitizer(cc, writeClasses, "starfarer_obf.jar", "fs.common_obf.jar", "fs.sound_obf.jar").apply();
 		// a bit of a cludge
 		cc.setSanitisedMappings(s.copyClassnameMappings());		
 
-		doLauncherPreferencesTransformation(cp);
-		doActionPerformedTransformation(cp);		
-		
-		cp.saveModifications();
+//		BetterClassPool cp = new BetterClassPool(cc);
+//		
+		doLauncherPreferencesTransformation(cc);
+//		doActionPerformedTransformation(cp);		
+//		
+//		cp.saveModifications();
 
 		Class<?> c = cc.getClassLoader().loadClass("com.fs.starfarer.StarfarerLauncher");
 		

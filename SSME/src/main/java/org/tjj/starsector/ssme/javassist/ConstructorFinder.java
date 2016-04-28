@@ -2,8 +2,6 @@ package org.tjj.starsector.ssme.javassist;
 
 import java.util.HashSet;
 
-import org.tjj.starsector.ssme.Utils;
-
 import javassist.CannotCompileException;
 import javassist.CtConstructor;
 import javassist.NotFoundException;
@@ -21,7 +19,7 @@ public class ConstructorFinder extends BehaviorFinder<CtConstructor> {
 		try {
 			CtConstructor constructor = expr.getConstructor();
 		
-			if(Utils.compare(constructor, target)) {
+			if(JavassistUtils.compare(constructor, target)) {
 				if(matches==null) {
 					matches = new HashSet<>();
 				}

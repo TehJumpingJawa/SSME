@@ -2,8 +2,6 @@ package org.tjj.starsector.ssme.javassist;
 
 import java.util.HashSet;
 
-import org.tjj.starsector.ssme.Utils;
-
 import javassist.CannotCompileException;
 import javassist.CtMethod;
 import javassist.NotFoundException;
@@ -21,8 +19,8 @@ public class MethodFinder extends BehaviorFinder<CtMethod> {
 	public void edit(MethodCall m) throws CannotCompileException {
 		try {
 			CtMethod method = m.getMethod();
-		
-			if(Utils.compare(method, target)) {
+
+			if(JavassistUtils.compare(method, target)) {
 				if(matches==null) {
 					matches = new HashSet<>();
 				}
