@@ -243,9 +243,9 @@ public class StarsectorModExpander {
 		
 		TransformationManager cc = TransformationManager.getInstance();
 		
-		Sanitizer s = new Sanitizer(cc, writeClasses, "starfarer_obf.jar", "fs.common_obf.jar", "fs.sound_obf.jar").apply();
+//		Sanitizer s = new Sanitizer(cc, writeClasses, "starfarer_obf.jar", "fs.common_obf.jar", "fs.sound_obf.jar").apply();
 		// a bit of a cludge
-		cc.setSanitisedMappings(s.copyClassnameMappings());		
+//		cc.setSanitisedMappings(s.copyClassnameMappings());		
 
 //		BetterClassPool cp = new BetterClassPool(cc);
 //		
