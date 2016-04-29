@@ -15,6 +15,7 @@ import org.objectweb.asm.tree.MethodNode;
 import org.tjj.starsector.ssme.ClassProvider;
 import org.tjj.starsector.ssme.asm.AnalyzableMethodVisitor;
 import org.tjj.starsector.ssme.asm.LiteralAnalyzingAdapter;
+import org.tjj.starsector.ssme.asm.Variable;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -43,12 +44,14 @@ public class UiEditor implements Opcodes {
 		ClassNode cn = new ClassNode(ASM5);
 		cr.accept(cn, ClassReader.EXPAND_FRAMES);
 		
+		@SuppressWarnings("unchecked")
 		MethodNode createLaunchUI = Iterables.find(cn.methods, new Predicate<MethodNode>() {
 			public boolean apply(MethodNode input) {
 				return input.name.equals("createLaunchUI");
 			};
 		});
 		
+		@SuppressWarnings("unchecked")
 		FieldNode modsField = Iterables.find(cn.fields, new Predicate<FieldNode>() {
 			@Override
 			public boolean apply(FieldNode input) {
@@ -63,7 +66,7 @@ public class UiEditor implements Opcodes {
 		AnalyzableMethodVisitor m = new AnalyzableMethodVisitor(ASM5) {
 			@Override
 			public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-				List<Object> stackLiterals = analyzer.stackLiterals;
+				List<Variable> stack = analyzer.stack;
 				
 				Type methodDescriptor = Type.getMethodType(desc);
 				
@@ -81,7 +84,7 @@ public class UiEditor implements Opcodes {
 							break failed;
 						}
 						
-						if(stackLiterals.get(stackLiterals.size()-args.length).equals("Mods...")) {
+						if(stack.get(stack.size()-args.length).literalValue.equals("Mods...")) {
 							System.out.println("It's a miracle!");
 						}
 						

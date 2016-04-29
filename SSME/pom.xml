@@ -31,11 +31,13 @@
 						</goals>
 						<phase>generate-test-resources</phase>
 						<configuration>
-						<archive>
-							<manifestFile>src/main/manifest/agent_manifest.mf</manifestFile>
-						</archive>
-						<includes><include>org/tjj/starsector/ssme/agent/Agent.class</include></includes>
-						<jarName>Agent</jarName>
+							<archive>
+								<manifestFile>src/main/manifest/agent_manifest.mf</manifestFile>
+							</archive>
+							<includes>
+								<include>org/tjj/starsector/ssme/agent/Agent.class</include>
+							</includes>
+							<jarName>Agent</jarName>
 						</configuration>
 					</execution>
 				</executions>
@@ -61,7 +63,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -80,8 +82,8 @@
 									</pluginExecutionFilter>
 									<action>
 										<execute>
-										<runOnConfiguration>true</runOnConfiguration>
-										<runOnIncremental>true</runOnIncremental>
+											<runOnConfiguration>true</runOnConfiguration>
+											<runOnIncremental>true</runOnIncremental>
 										</execute>
 									</action>
 								</pluginExecution>
@@ -93,6 +95,13 @@
 		</pluginManagement>
 	</build>
 
+	<properties>
+		<!-- versions extracted from dependency declarations because they're needed for launch script filtering -->
+		<asm-version>5.1</asm-version>
+		<javassist-version>3.20.0-GA</javassist-version>
+		<guava.version>19.0</guava.version>
+		<auto-value-version>1.2</auto-value-version>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -125,13 +134,13 @@
 			<artifactId>asm-analysis</artifactId>
 			<version>${asm-version}</version>
 		</dependency>
-		
+
 		<dependency>
-		  <groupId>com.google.guava</groupId>
-		  <artifactId>guava</artifactId>
-		  <version>${guava.version}</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
@@ -247,8 +256,8 @@
 
 	<parent>
 		<groupId>org.tjj.starsector.ssme</groupId>
-		<artifactId>dependency_versions</artifactId>
+		<artifactId>local_settings</artifactId>
+		<relativePath>local_settings.xml</relativePath>
 		<version>1</version>
-		<relativePath>dependency_versions.xml</relativePath>
 	</parent>
 </project>

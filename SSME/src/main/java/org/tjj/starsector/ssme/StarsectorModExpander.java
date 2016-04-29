@@ -14,30 +14,14 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
-import org.tjj.starsector.ssme.javassist.AccessModifier;
-import org.tjj.starsector.ssme.javassist.NonAccessModifier;
 import org.tjj.starsector.ssme.javassist.UiEditor;
-import org.tjj.starsector.ssme.javassist.JavassistUtils;
-import org.tjj.starsector.ssme.javassist.BetterClassPool;
-import org.tjj.starsector.ssme.javassist.MethodFinder;
-import org.tjj.starsector.ssme.javassist.MethodPrototype;
 import org.tjj.starsector.ssme.ui.AuthorizationUI;
-
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.CtNewMethod;
-import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
 
 public class StarsectorModExpander {
 
@@ -50,27 +34,27 @@ public class StarsectorModExpander {
 	 * @throws NotFoundException
 	 * @throws CannotCompileException
 	 */
-	private static void doActionPerformedTransformation(ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass modManager = cp.get("com.fs.starfarer.launcher.ModManager");
-		
-		List<CtMethod> matches = JavassistUtils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC),EnumSet.of(NonAccessModifier.SYNCHRONIZED, NonAccessModifier.STATIC),"getInstance", new CtClass[0], cp.get("com.fs.starfarer.launcher.ModManager")));
-		
-		if(matches.size()!=1) throw new NotFoundException("Expected 1 'getInstance' method, found:" + matches);
-		CtMethod getModManager = matches.get(0);
-		
-		matches = JavassistUtils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(NonAccessModifier.SYNCHRONIZED),"getEnabledMods", new CtClass[0], cp.get("java.util.List")));
-		if(matches.size()!=1) throw new NotFoundException("Expected 1 'getEnabledMods' returning List, found: " + matches);
-		
-		CtMethod getActiveMods = matches.get(0);
-		
-		CtClass launcher = cp.get("com.fs.starfarer.StarfarerLauncher");
-		CtMethod actionPerformed = launcher.getDeclaredMethod("actionPerformed", new CtClass[]{cp.get("java.awt.event.ActionEvent")});
-		
-		actionPerformed.setName("SSME_actionPerformed");
-		
-		CtMethod newActionPerformed = CtNewMethod.make("public void actionPerformed(java.awt.event.ActionEvent e) {" + StarsectorModExpander.class.getName() + ".receiveModList($0,$1," + "com.fs.starfarer.launcher.ModManager" +"." + getModManager.getName() +"()." + getActiveMods.getName() +"());}",launcher);
-		launcher.addMethod(newActionPerformed);		
-	}
+//	private static void doActionPerformedTransformation(ClassPool cp) throws NotFoundException, CannotCompileException {
+//		CtClass modManager = cp.get("com.fs.starfarer.launcher.ModManager");
+//		
+//		List<CtMethod> matches = JavassistUtils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC),EnumSet.of(NonAccessModifier.SYNCHRONIZED, NonAccessModifier.STATIC),"getInstance", new CtClass[0], cp.get("com.fs.starfarer.launcher.ModManager")));
+//		
+//		if(matches.size()!=1) throw new NotFoundException("Expected 1 'getInstance' method, found:" + matches);
+//		CtMethod getModManager = matches.get(0);
+//		
+//		matches = JavassistUtils.findDeclaredMethods(modManager, new MethodPrototype(EnumSet.of(AccessModifier.PUBLIC), EnumSet.of(NonAccessModifier.SYNCHRONIZED),"getEnabledMods", new CtClass[0], cp.get("java.util.List")));
+//		if(matches.size()!=1) throw new NotFoundException("Expected 1 'getEnabledMods' returning List, found: " + matches);
+//		
+//		CtMethod getActiveMods = matches.get(0);
+//		
+//		CtClass launcher = cp.get("com.fs.starfarer.StarfarerLauncher");
+//		CtMethod actionPerformed = launcher.getDeclaredMethod("actionPerformed", new CtClass[]{cp.get("java.awt.event.ActionEvent")});
+//		
+//		actionPerformed.setName("SSME_actionPerformed");
+//		
+//		CtMethod newActionPerformed = CtNewMethod.make("public void actionPerformed(java.awt.event.ActionEvent e) {" + StarsectorModExpander.class.getName() + ".receiveModList($0,$1," + "com.fs.starfarer.launcher.ModManager" +"." + getModManager.getName() +"()." + getActiveMods.getName() +"());}",launcher);
+//		launcher.addMethod(newActionPerformed);		
+//	}
 
 	/**
 	 * hook for the code injected into StarfarerLauncher.actionPerformed.
@@ -234,7 +218,7 @@ public class StarsectorModExpander {
 	 * @throws InterruptedException 
 	 * @throws ExecutionException 
 	 */
-	public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassAlreadyLoadedException, NotFoundException, CannotCompileException, IOException, BadBytecode, InterruptedException, ExecutionException {
+	public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassAlreadyLoadedException, IOException, InterruptedException, ExecutionException {
 
 		boolean writeClasses = false;
 		if(args.length>0 && args[0].equals("writeClasses")) {

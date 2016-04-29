@@ -78,7 +78,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
      * this uninitialized value). This field is <tt>null</tt> for unreachable
      * instructions.
      */
-    public List<Object> locals;
+    public List<Variable> locals;
 
     /**
      * <code>List</code> of the operand stack slots for current execution frame.
@@ -92,11 +92,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
      * this uninitialized value). This field is <tt>null</tt> for unreachable
      * instructions.
      */
-    public List<Object> stack;
-
-    public List<Object> stackLiterals;
-    
-    public static Object UNKNOWN_VALUE = new Object();
+    public List<Variable> stack;
     
     /**
      * The labels that designate the next instruction to be visited. May be
@@ -179,16 +175,15 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             final MethodVisitor mv) {
         super(api, mv);
         this.owner = owner;
-        locals = new ArrayList<Object>();
-        stack = new ArrayList<Object>();
-        stackLiterals = new ArrayList<Object>();
+        locals = new ArrayList<>();
+        stack = new ArrayList<>();
         uninitializedTypes = new HashMap<Object, Object>();
 
         if ((access & Opcodes.ACC_STATIC) == 0) {
             if ("<init>".equals(name)) {
-                locals.add(Opcodes.UNINITIALIZED_THIS);
+                locals.add(Variable.UNKNOWN_UNINITIALIZED_THIS);
             } else {
-                locals.add(owner);
+                locals.add(new Variable(owner));
             }
         }
         Type[] types = Type.getArgumentTypes(desc);
@@ -200,25 +195,25 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             case Type.BYTE:
             case Type.SHORT:
             case Type.INT:
-                locals.add(Opcodes.INTEGER);
+                locals.add(Variable.UNKNOWN_INTEGER);
                 break;
             case Type.FLOAT:
-                locals.add(Opcodes.FLOAT);
+                locals.add(Variable.UNKNOWN_FLOAT);
                 break;
             case Type.LONG:
-                locals.add(Opcodes.LONG);
-                locals.add(Opcodes.TOP);
+                locals.add(Variable.UNKNOWN_LONG);
+                locals.add(Variable.UNKNOWN_TOP);
                 break;
             case Type.DOUBLE:
-                locals.add(Opcodes.DOUBLE);
-                locals.add(Opcodes.TOP);
+                locals.add(Variable.UNKNOWN_DOUBLE);
+                locals.add(Variable.UNKNOWN_TOP);
                 break;
             case Type.ARRAY:
-                locals.add(types[i].getDescriptor());
+                locals.add(new Variable(types[i].getDescriptor()));
                 break;
             // case Type.OBJECT:
             default:
-                locals.add(types[i].getInternalName());
+                locals.add(new Variable(types[i].getInternalName()));
             }
         }
         maxLocals = locals.size();
@@ -239,26 +234,22 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (this.locals != null) {
             this.locals.clear();
             this.stack.clear();
-            this.stackLiterals.clear();
         } else {
-            this.locals = new ArrayList<Object>();
-            this.stack = new ArrayList<Object>();
-            this.stackLiterals = new ArrayList<Object>();
+            this.locals = new ArrayList<>();
+            this.stack = new ArrayList<>();
         }
         for (int i = 0; i < nLocal; ++i) {
 		    Object type1 = local[i];
-		    locals.add(type1);
+		    locals.add(new Variable(type1));
 		    if (type1 == Opcodes.LONG || type1 == Opcodes.DOUBLE) {
-		        locals.add(Opcodes.TOP);
+		        locals.add(Variable.UNKNOWN_TOP);
 		    }
 		}
         for (int i = 0; i < nStack; ++i) {
 		    Object type2 = stack[i];
-		    this.stack.add(type2);
-		    this.stackLiterals.add(UNKNOWN_VALUE);
+		    this.stack.add(new Variable(type2));
 		    if (type2 == Opcodes.LONG || type2 == Opcodes.DOUBLE) {
-		    	this.stack.add(Opcodes.TOP);
-		    	this.stackLiterals.add(Opcodes.TOP);
+		    	this.stack.add(Variable.UNKNOWN_TOP);
 		    }
 		}
         maxStack = Math.max(maxStack, this.stack.size());
@@ -274,7 +265,6 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
                 || opcode == Opcodes.ATHROW) {
             this.locals = null;
             this.stack = null;
-            this.stackLiterals = null;
         }
     }
 
@@ -366,14 +356,13 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
                     u = uninitializedTypes.get(t);
                 }
                 for (int i = 0; i < locals.size(); ++i) {
-                    if (locals.get(i) == t) {
-                        locals.set(i, u);
+                    if (locals.get(i).type == t) {
+                        locals.set(i, new Variable(u));
                     }
                 }
                 for (int i = 0; i < stack.size(); ++i) {
-                    if (stack.get(i) == t) {
-                        stack.set(i, u);
-                        stackLiterals.set(i, UNKNOWN_VALUE);
+                    if (stack.get(i).type == t) {
+                        stack.set(i, new Variable(u));
                     }
                 }
             }
@@ -406,7 +395,6 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (opcode == Opcodes.GOTO) {
             this.locals = null;
             this.stack = null;
-            this.stackLiterals = null;
         }
     }
 
@@ -431,28 +419,28 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             return;
         }
         if (cst instanceof Integer) {
-            push(Opcodes.INTEGER, cst);
+            push(new Variable(Opcodes.INTEGER, cst));
         } else if (cst instanceof Long) {
-            push(Opcodes.LONG, cst);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+            push(new Variable(Opcodes.LONG, cst));
+            push(Variable.UNKNOWN_TOP);
         } else if (cst instanceof Float) {
-            push(Opcodes.FLOAT, cst);
+            push(new Variable(Opcodes.FLOAT, cst));
         } else if (cst instanceof Double) {
-            push(Opcodes.DOUBLE, cst);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+            push(new Variable(Opcodes.DOUBLE, cst));
+            push(Variable.UNKNOWN_TOP);
         } else if (cst instanceof String) {
-            push("java/lang/String", cst);
+            push(new Variable("java/lang/String", cst));
         } else if (cst instanceof Type) {
             int sort = ((Type) cst).getSort();
             if (sort == Type.OBJECT || sort == Type.ARRAY) {
-                push("java/lang/Class", UNKNOWN_VALUE);
+                push(Variable.UNKNOWN_CLASS);
             } else if (sort == Type.METHOD) {
-                push("java/lang/invoke/MethodType", UNKNOWN_VALUE);
+                push(Variable.UNKNOWN_METHOD);
             } else {
                 throw new IllegalArgumentException();
             }
         } else if (cst instanceof Handle) {
-            push("java/lang/invoke/MethodHandle", UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_HANDLE);
         } else {
             throw new IllegalArgumentException();
         }
@@ -476,7 +464,6 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         execute(Opcodes.TABLESWITCH, 0, null);
         this.locals = null;
         this.stack = null;
-        this.stackLiterals = null;
     }
 
     @Override
@@ -488,7 +475,6 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         execute(Opcodes.LOOKUPSWITCH, 0, null);
         this.locals = null;
         this.stack = null;
-        this.stackLiterals = null;
     }
 
     @Override
@@ -510,22 +496,21 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
 
     // ------------------------------------------------------------------------
 
-    private Object get(final int local) {
+    private Variable get(final int local) {
         maxLocals = Math.max(maxLocals, local + 1);
-        return local < locals.size() ? locals.get(local) : Opcodes.TOP;
+        return local < locals.size() ? locals.get(local) : Variable.UNKNOWN_TOP;
     }
 
-    private void set(final int local, final Object type) {
+    private void set(final int local, Variable v) {
         maxLocals = Math.max(maxLocals, local + 1);
         while (local >= locals.size()) {
-            locals.add(Opcodes.TOP);
+            locals.add(Variable.UNKNOWN_TOP);
         }
-        locals.set(local, type);
+        locals.set(local, v);
     }
 
-    private void push(final Object type, Object value) {
-        stack.add(type);
-        stackLiterals.add(value);
+    private void push(Variable v) {
+        stack.add(v);
         maxStack = Math.max(maxStack, stack.size());
     }
 
@@ -539,48 +524,48 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case 'B':
         case 'S':
         case 'I':
-            push(Opcodes.INTEGER, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_INTEGER);
             return;
         case 'F':
-            push(Opcodes.FLOAT,UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_FLOAT);
             return;
         case 'J':
-            push(Opcodes.LONG, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_FLOAT);
+            push(Variable.UNKNOWN_TOP);
             return;
         case 'D':
-            push(Opcodes.DOUBLE, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_DOUBLE);
+            push(Variable.UNKNOWN_TOP);
             return;
         case '[':
             if (index == 0) {
-                push(desc, UNKNOWN_VALUE);
+                push(new Variable(desc));
             } else {
-                push(desc.substring(index, desc.length()), UNKNOWN_VALUE);
+                push(new Variable(desc.substring(index, desc.length())));
             }
             break;
         // case 'L':
         default:
             if (index == 0) {
-                push(desc.substring(1, desc.length() - 1), UNKNOWN_VALUE);
+                push(new Variable(desc.substring(1, desc.length() - 1)));
             } else {
-                push(desc.substring(index + 1, desc.length() - 1), UNKNOWN_VALUE);
+                push(new Variable(desc.substring(index + 1, desc.length() - 1)));
             }
         }
     }
 
-    private Object pop() {
-    	stackLiterals.remove(stackLiterals.size()-1);
+    private Variable pop() {
         return stack.remove(stack.size() - 1);
     }
 
-    private void pop(final int n) {
+    private Variable pop(final int n) {
         int size = stack.size();
         int end = size - n;
+        Variable last = null;
         for (int i = size - 1; i >= end; --i) {
-            stack.remove(i);
-            stackLiterals.remove(i);
+            last = stack.remove(i);
         }
+        return last;
     }
 
     private void pop(final String desc) {
@@ -604,88 +589,213 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             labels = null;
             return;
         }
-        Object t1, t2, t3, t4;
+        Variable t1, t2, t3, t4;
         switch (opcode) {
         case Opcodes.NOP:
+        	break;
         case Opcodes.INEG:
+        {
+        	Variable v = pop();
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		int i = (Integer)v.literalValue;
+        		v = new Variable(Opcodes.INTEGER, -i);
+        	}
+        	push(v);
+        }
+        break;
         case Opcodes.LNEG:
+        {
+        	Variable v = pop(2);
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		long l = (Long)v.literalValue;
+        		v = new Variable(Opcodes.LONG, -l);
+        	}
+        	push(v);
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;
         case Opcodes.FNEG:
+        {
+        	Variable v = pop();
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		float f = (Float)v.literalValue;
+        		v = new Variable(Opcodes.FLOAT, -f);
+        	}
+        	push(v);
+        }
+        break;        	
         case Opcodes.DNEG:
+        {
+        	Variable v = pop();
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		double d = (Double)v.literalValue;
+        		v = new Variable(Opcodes.DOUBLE, -d);
+        	}
+        	push(v);
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;        	
         case Opcodes.I2B:
+        {
+        	Variable v = pop();
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		int i = (Integer)v.literalValue;
+        		v = new Variable(Opcodes.INTEGER, (byte)i);
+        	}
+        	push(v);
+        }
+        break;       	
         case Opcodes.I2C:
+        {
+        	Variable v = pop();
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		int i = (Integer)v.literalValue;
+        		v = new Variable(Opcodes.INTEGER, (char)i);
+        	}
+        	push(v);
+        }
+        break;     	
         case Opcodes.I2S:
+        {
+        	Variable v = pop();
+        	
+        	if(v.literalValue!=Literal.UNKNOWN) {
+        		int i = (Integer)v.literalValue;
+        		v = new Variable(Opcodes.INTEGER, (short)i);
+        	}
+        	push(v);
+        }
+        break;         	
         case Opcodes.GOTO:
         case Opcodes.RETURN:
             break;
         case Opcodes.ACONST_NULL:
-            push(Opcodes.NULL, UNKNOWN_VALUE);
+            push(Variable.NULL);
             break;
         case Opcodes.ICONST_M1:
+        	push(Variable.M1);
+        	break;
         case Opcodes.ICONST_0:
+        	push(Variable.I0);
+        	break;
         case Opcodes.ICONST_1:
+        	push(Variable.I1);
+        	break;
         case Opcodes.ICONST_2:
+        	push(Variable.I2);
+        	break;
         case Opcodes.ICONST_3:
+        	push(Variable.I3);
+        	break;
         case Opcodes.ICONST_4:
+        	push(Variable.I4);
+        	break;
         case Opcodes.ICONST_5:
+        	push(Variable.I5);
+        	break;
         case Opcodes.BIPUSH:
+        	push(new Variable(Opcodes.INTEGER, (byte)iarg));
+        	break;
         case Opcodes.SIPUSH:
-            push(Opcodes.INTEGER, UNKNOWN_VALUE);
+        	push(new Variable(Opcodes.INTEGER, (short)iarg));
             break;
         case Opcodes.LCONST_0:
+        	push(Variable.L0);
+        	push(Variable.UNKNOWN_TOP);
+        	break;
         case Opcodes.LCONST_1:
-            push(Opcodes.LONG, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+        	push(Variable.L1);
+        	push(Variable.UNKNOWN_TOP);
             break;
         case Opcodes.FCONST_0:
+        	push(Variable.F0);
+            break;
         case Opcodes.FCONST_1:
+        	push(Variable.F1);
+            break;
         case Opcodes.FCONST_2:
-            push(Opcodes.FLOAT, UNKNOWN_VALUE);
+        	push(Variable.F2);
             break;
         case Opcodes.DCONST_0:
+        	push(Variable.D0);
+        	push(Variable.UNKNOWN_TOP);
+            break;
         case Opcodes.DCONST_1:
-            push(Opcodes.DOUBLE, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+        	push(Variable.D1);
+        	push(Variable.UNKNOWN_TOP);
             break;
         case Opcodes.ILOAD:
         case Opcodes.FLOAD:
         case Opcodes.ALOAD:
-            push(get(iarg), UNKNOWN_VALUE);
+            push(get(iarg));
             break;
         case Opcodes.LLOAD:
         case Opcodes.DLOAD:
-            push(get(iarg), UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+            push(get(iarg));
+            push(Variable.UNKNOWN_TOP);
             break;
         case Opcodes.IALOAD:
         case Opcodes.BALOAD:
         case Opcodes.CALOAD:
         case Opcodes.SALOAD:
             pop(2);
-            push(Opcodes.INTEGER, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_INTEGER);
             break;
         case Opcodes.LALOAD:
+        	pop(2);
+        	push(Variable.UNKNOWN_LONG);
+        	push(Variable.UNKNOWN_TOP);
+        	break;
         case Opcodes.D2L:
-            pop(2);
-            push(Opcodes.LONG, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+        {
+            Variable v = pop(2);
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	double d = (Double)v.literalValue;
+            	long l = (long)d;
+            	push(new Variable(Opcodes.LONG, l));
+            }
+            else {
+            	push(Variable.UNKNOWN_LONG);
+            }
+            push(Variable.UNKNOWN_TOP);
             break;
+        }
         case Opcodes.FALOAD:
             pop(2);
-            push(Opcodes.FLOAT, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_FLOAT);
             break;
         case Opcodes.DALOAD:
+        	pop(2);
+        	push(Variable.UNKNOWN_DOUBLE);
+        	push(Variable.UNKNOWN_TOP);
+        	break;
         case Opcodes.L2D:
-            pop(2);
-            push(Opcodes.DOUBLE, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
+        {
+            Variable v = pop(2);
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	long l = (Long)v.literalValue;
+            	double d = (double)l;
+            	push(new Variable(Opcodes.DOUBLE, d));
+            }
+            else {
+            	push(Variable.UNKNOWN_DOUBLE);
+            }
+            push(Variable.UNKNOWN_TOP);
             break;
+        }
         case Opcodes.AALOAD:
             pop(1);
             t1 = pop();
-            if (t1 instanceof String) {
-                pushDesc(((String) t1).substring(1));
+            if (t1.type instanceof String) {
+                pushDesc(((String) t1.type).substring(1));
             } else {
-                push("java/lang/Object", UNKNOWN_VALUE);
+                push(Variable.UNKNOWN_OBJECT);
             }
             break;
         case Opcodes.ISTORE:
@@ -695,8 +805,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             set(iarg, t1);
             if (iarg > 0) {
                 t2 = get(iarg - 1);
-                if (t2 == Opcodes.LONG || t2 == Opcodes.DOUBLE) {
-                    set(iarg - 1, Opcodes.TOP);
+                if (t2.type == Opcodes.LONG || t2.type == Opcodes.DOUBLE) {
+                    set(iarg - 1, Variable.UNKNOWN_TOP);
                 }
             }
             break;
@@ -705,11 +815,11 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop(1);
             t1 = pop();
             set(iarg, t1);
-            set(iarg + 1, Opcodes.TOP);
+            set(iarg + 1, Variable.UNKNOWN_TOP);
             if (iarg > 0) {
                 t2 = get(iarg - 1);
-                if (t2 == Opcodes.LONG || t2 == Opcodes.DOUBLE) {
-                    set(iarg - 1, Opcodes.TOP);
+                if (t2.type == Opcodes.LONG || t2.type == Opcodes.DOUBLE) {
+                    set(iarg - 1, Variable.UNKNOWN_TOP);
                 }
             }
             break;
@@ -759,147 +869,683 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             break;
         case Opcodes.DUP:
             t1 = pop();
-            push(t1, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
+            push(t1);
+            push(t1);
             break;
         case Opcodes.DUP_X1:
             t1 = pop();
             t2 = pop();
-            push(t1, UNKNOWN_VALUE);
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
+            push(t1);
+            push(t2);
+            push(t1);
             break;
         case Opcodes.DUP_X2:
             t1 = pop();
             t2 = pop();
             t3 = pop();
-            push(t1, UNKNOWN_VALUE);
-            push(t3, UNKNOWN_VALUE);
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
+            push(t1);
+            push(t3);
+            push(t2);
+            push(t1);
             break;
         case Opcodes.DUP2:
             t1 = pop();
             t2 = pop();
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
+            push(t2);
+            push(t1);
+            push(t2);
+            push(t1);
             break;
         case Opcodes.DUP2_X1:
             t1 = pop();
             t2 = pop();
             t3 = pop();
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
-            push(t3, UNKNOWN_VALUE);
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
+            push(t2);
+            push(t1);
+            push(t3);
+            push(t2);
+            push(t1);
             break;
         case Opcodes.DUP2_X2:
             t1 = pop();
             t2 = pop();
             t3 = pop();
             t4 = pop();
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
-            push(t4, UNKNOWN_VALUE);
-            push(t3, UNKNOWN_VALUE);
-            push(t2, UNKNOWN_VALUE);
-            push(t1, UNKNOWN_VALUE);
+            push(t2);
+            push(t1);
+            push(t4);
+            push(t3);
+            push(t2);
+            push(t1);
             break;
         case Opcodes.SWAP:
             t1 = pop();
             t2 = pop();
-            push(t1, UNKNOWN_VALUE);
-            push(t2, UNKNOWN_VALUE);
+            push(t1);
+            push(t2);
             break;
         case Opcodes.IADD:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) + ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;
         case Opcodes.ISUB:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) - ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;        	
         case Opcodes.IMUL:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) * ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;        	
         case Opcodes.IDIV:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) / ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.IREM:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) % ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.IAND:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) & ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.IOR:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) | ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.IXOR:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) ^ ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.ISHL:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) << ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.ISHR:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) >> ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.IUSHR:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		int i = ((Integer)b.literalValue) >>> ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.INTEGER, i));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_INTEGER);
+        	}
+        }
+        break;         	
         case Opcodes.L2I:
+        {
+        	Variable v = pop(2);
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	long l = (Long)v.literalValue;
+            	int i = (int)l;
+            	push(new Variable(Opcodes.INTEGER, i));
+            }
+            else {
+            	push(Variable.UNKNOWN_INTEGER);
+            }
+        }
+        break;
         case Opcodes.D2I:
+        {
+        	Variable v = pop(2);
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	double d = (Double)v.literalValue;
+            	int i = (int)d;
+            	push(new Variable(Opcodes.INTEGER, i));
+            }
+            else {
+            	push(Variable.UNKNOWN_INTEGER);
+            }
+        }
+        break;
         case Opcodes.FCMPL:
+        	//TODO this can be implemented.
         case Opcodes.FCMPG:
+        	//TODO so can this.
             pop(2);
-            push(Opcodes.INTEGER, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_INTEGER);
             break;
         case Opcodes.LADD:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) + ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.LSUB:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) - ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.LMUL:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) * ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.LDIV:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) / ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.LREM:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) % ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.LAND:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) & ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.LOR:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) | ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break; 
         case Opcodes.LXOR:
-            pop(4);
-            push(Opcodes.LONG, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) ^ ((Long)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;         	
         case Opcodes.FADD:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		float f = ((Float)b.literalValue) + ((Float)a.literalValue);
+        		push(new Variable(Opcodes.FLOAT, f));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_FLOAT);
+        	}
+        }
+        break;         	
         case Opcodes.FSUB:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		float f = ((Float)b.literalValue) - ((Float)a.literalValue);
+        		push(new Variable(Opcodes.FLOAT, f));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_FLOAT);
+        	}
+        }
+        break;         	
         case Opcodes.FMUL:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		float f = ((Float)b.literalValue) * ((Float)a.literalValue);
+        		push(new Variable(Opcodes.FLOAT, f));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_FLOAT);
+        	}
+        }
+        break;         	
         case Opcodes.FDIV:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		float f = ((Float)b.literalValue) / ((Float)a.literalValue);
+        		push(new Variable(Opcodes.FLOAT, f));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_FLOAT);
+        	}
+        }
+        break;         	
         case Opcodes.FREM:
+        {
+        	Variable a = pop();
+        	Variable b = pop();
+        	
+        	if(bothKnown(a, b)) {
+        		float f = ((Float)b.literalValue) % ((Float)a.literalValue);
+        		push(new Variable(Opcodes.FLOAT, f));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_FLOAT);
+        	}
+        }
+        break;         	
         case Opcodes.L2F:
+        {
+        	Variable v = pop(2);
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	long l = (Long)v.literalValue;
+            	float f = (float)l;
+            	push(new Variable(Opcodes.FLOAT, f));
+            }
+            else {
+            	push(Variable.UNKNOWN_FLOAT);
+            }
+        }
+        break;        	
         case Opcodes.D2F:
-            pop(2);
-            push(Opcodes.FLOAT, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable v = pop(2);
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	double d = (Double)v.literalValue;
+            	float f = (float)d;
+            	push(new Variable(Opcodes.FLOAT, f));
+            }
+            else {
+            	push(Variable.UNKNOWN_FLOAT);
+            }
+        }
+        break;
         case Opcodes.DADD:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		double d = ((Double)b.literalValue) + ((Double)a.literalValue);
+        		push(new Variable(Opcodes.DOUBLE, d));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_DOUBLE);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;        	
         case Opcodes.DSUB:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		double d = ((Double)b.literalValue) - ((Double)a.literalValue);
+        		push(new Variable(Opcodes.DOUBLE, d));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_DOUBLE);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;          	
         case Opcodes.DMUL:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		double d = ((Double)b.literalValue) * ((Double)a.literalValue);
+        		push(new Variable(Opcodes.DOUBLE, d));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_DOUBLE);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;          	
         case Opcodes.DDIV:
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		double d = ((Double)b.literalValue) / ((Double)a.literalValue);
+        		push(new Variable(Opcodes.DOUBLE, d));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_DOUBLE);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;          	
         case Opcodes.DREM:
-            pop(4);
-            push(Opcodes.DOUBLE, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable a = pop(2);
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		double d = ((Double)b.literalValue) % ((Double)a.literalValue);
+        		push(new Variable(Opcodes.DOUBLE, d));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_DOUBLE);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;  
         case Opcodes.LSHL:
+        {
+        	Variable a = pop();
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) << ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;
         case Opcodes.LSHR:
+        {
+        	Variable a = pop();
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) >> ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;        	
         case Opcodes.LUSHR:
-            pop(3);
-            push(Opcodes.LONG, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable a = pop();
+        	Variable b = pop(2);
+        	
+        	if(bothKnown(a, b)) {
+        		long l = ((Long)b.literalValue) >>> ((Integer)a.literalValue);
+        		push(new Variable(Opcodes.LONG, l));
+        	}
+        	else {
+        		push(Variable.UNKNOWN_LONG);
+        	}
+        	push(Variable.UNKNOWN_TOP);
+        }
+        break;
         case Opcodes.IINC:
-            set(iarg, Opcodes.INTEGER);
+        	//TODO this can be determined too.
+            set(iarg, Variable.UNKNOWN_INTEGER);
             break;
         case Opcodes.I2L:
+        {
+        	Variable v = pop();
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	int i = (Integer)v.literalValue;
+            	long l = (long)i;
+            	push(new Variable(Opcodes.LONG, l));
+            }
+            else {
+            	push(Variable.UNKNOWN_LONG);
+            }
+            push(Variable.UNKNOWN_TOP);
+        }
+        break;        	
         case Opcodes.F2L:
-            pop(1);
-            push(Opcodes.LONG, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable v = pop();
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	float f = (Float)v.literalValue;
+            	long l = (long)f;
+            	push(new Variable(Opcodes.LONG, l));
+            }
+            else {
+            	push(Variable.UNKNOWN_LONG);
+            }
+            push(Variable.UNKNOWN_TOP);
+        }
+        break;
         case Opcodes.I2F:
-            pop(1);
-            push(Opcodes.FLOAT, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable v = pop();
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	int i = (Integer)v.literalValue;
+            	float f = (float)i;
+            	push(new Variable(Opcodes.FLOAT, f));
+            }
+            else {
+            	push(Variable.UNKNOWN_FLOAT);
+            }
+        }
+        break;
         case Opcodes.I2D:
+        {
+        	Variable v = pop();
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	int i = (Integer)v.literalValue;
+            	double d = (double)i;
+            	push(new Variable(Opcodes.DOUBLE, d));
+            }
+            else {
+            	push(Variable.UNKNOWN_DOUBLE);
+            }
+            push(Variable.UNKNOWN_TOP);
+        }
+        break;          	
         case Opcodes.F2D:
-            pop(1);
-            push(Opcodes.DOUBLE, UNKNOWN_VALUE);
-            push(Opcodes.TOP, UNKNOWN_VALUE);
-            break;
+        {
+        	Variable v = pop();
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	float f = (Float)v.literalValue;
+            	double d = (double)f;
+            	push(new Variable(Opcodes.DOUBLE, d));
+            }
+            else {
+            	push(Variable.UNKNOWN_DOUBLE);
+            }
+            push(Variable.UNKNOWN_TOP);
+        }
+        break; 
         case Opcodes.F2I:
+        {
+        	Variable v = pop();
+            if(v.literalValue!=Literal.UNKNOWN) {
+            	float f = (Float)v.literalValue;
+            	int i = (int)f;
+            	push(new Variable(Opcodes.INTEGER, i));
+            }
+            else {
+            	push(Variable.UNKNOWN_INTEGER);
+            }
+        }
+        break;         	
         case Opcodes.ARRAYLENGTH:
         case Opcodes.INSTANCEOF:
             pop(1);
-            push(Opcodes.INTEGER, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_INTEGER);
             break;
         case Opcodes.LCMP:
+            //TODO this can be known
         case Opcodes.DCMPL:
+            //TODO this can be known
         case Opcodes.DCMPG:
+            //TODO this can be known
             pop(4);
-            push(Opcodes.INTEGER, UNKNOWN_VALUE);
+            push(Variable.UNKNOWN_INTEGER);
             break;
         case Opcodes.JSR:
         case Opcodes.RET:
@@ -919,7 +1565,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop();
             break;
         case Opcodes.NEW:
-            push(labels.get(0), UNKNOWN_VALUE);
+            push(new Variable(labels.get(0)));
             break;
         case Opcodes.NEWARRAY:
             pop();
@@ -966,5 +1612,9 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             break;
         }
         labels = null;
+    }
+    
+    private boolean bothKnown(Variable a, Variable b) {
+    	return a.literalValue!= Literal.UNKNOWN && b.literalValue!=Literal.UNKNOWN;
     }
 }
