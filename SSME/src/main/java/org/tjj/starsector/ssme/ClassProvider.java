@@ -34,19 +34,6 @@ public interface ClassProvider {
 	public boolean exists(String classname);
 	
 	/**
-	 * Most SSME mods shouldn't need this.
-	 * 
-	 * SSME sanitises Starsector's obfuscated class, method & field names so that Javassist's source compiler doesn't break when trying to compile code fragments with illegal identifier names.
-	 * 
-	 * This method allows you to discover this mapping.
-	 * Note parameter & return value are binary class names ('.' separator)
-	 * 
-	 * @param classname The original obfuscated class name
-	 * @return			The new sanitised class name. (or the parameter, if no mapping exists)
-	 */
-	public String getSanitisedName(String classname);
-	
-	/**
 	 * Stores the provided bytes for the specified class.
 	 * Note, may only be called during the earlyTransformations phase.
 	 * 

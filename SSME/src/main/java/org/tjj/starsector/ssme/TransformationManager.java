@@ -78,11 +78,7 @@ class TransformationManager implements ClassProvider {
 	ModClassLoader getModClassLoader() {
 		return modLoader;
 	}
-	
-	void setSanitisedMappings(Map<String,String> mappings) {
-		sanitisedMappings = mappings;
-	}
-	
+
 	public static synchronized TransformationManager getInstance() {
 		if(instance==null) {
 			instance = new TransformationManager();
@@ -168,15 +164,4 @@ class TransformationManager implements ClassProvider {
 	public Map<String, String> getObfuscationMap() {
 		return obfuscationMap;
 	}
-
-	@Override
-	public String getSanitisedName(String classname) {
-		String newName = sanitisedMappings.get(classname);
-		if(newName==null) {
-			return classname;
-		}
-		return newName;
-	}
-
-
 }

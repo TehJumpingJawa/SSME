@@ -227,19 +227,16 @@ public class StarsectorModExpander {
 		}
 		
 		TransformationManager cc = TransformationManager.getInstance();
+
+		ClassLoader cl = StarsectorModExpander.class.getClassLoader();
 		
-//		Sanitizer s = new Sanitizer(cc, writeClasses, "starfarer_obf.jar", "fs.common_obf.jar", "fs.sound_obf.jar").apply();
-		// a bit of a cludge
-//		cc.setSanitisedMappings(s.copyClassnameMappings());		
-
-//		BetterClassPool cp = new BetterClassPool(cc);
-//		
+		if(writeClasses) {
+			Sanitizer s = new Sanitizer(cc, writeClasses, "starfarer_obf.jar", "fs.common_obf.jar", "fs.sound_obf.jar").apply();
+			cl = new SanitizedClassLoader(cc, cl);
+		}
 		doLauncherPreferencesTransformation(cc);
-//		doActionPerformedTransformation(cp);		
-//		
-//		cp.saveModifications();
 
-		Class<?> c = StarsectorModExpander.class.getClassLoader().loadClass("com.fs.starfarer.StarfarerLauncher");
+		Class<?> c = cl.loadClass("com.fs.starfarer.StarfarerLauncher");
 		
 		Method main = c.getMethod("main", String[].class);
 		main.invoke(null, new Object[]{new String[0]});
