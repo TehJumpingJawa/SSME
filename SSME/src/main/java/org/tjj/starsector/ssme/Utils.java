@@ -47,7 +47,7 @@ public final class Utils {
 		}
 		
 		public static String toFilename(String internalName) {
-			return internalName.concat(".class");
+			return '/' + internalName.concat(".class");
 		}
 	
 		/**

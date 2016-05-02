@@ -85,10 +85,11 @@ public class StarsectorModExpander {
 	 * @param cp
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
+	 * @throws ClassAlreadyLoadedException 
 	 * @throws NotFoundException 
 	 * @throws CannotCompileException 
 	 */
-	private static void doLauncherPreferencesTransformation(ClassProvider cc) throws ClassNotFoundException, IOException {
+	private static void doLauncherPreferencesTransformation(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 		
 		new UiEditor(cc);
 		
@@ -238,7 +239,7 @@ public class StarsectorModExpander {
 //		
 //		cp.saveModifications();
 
-		Class<?> c = cc.getClassLoader().loadClass("com.fs.starfarer.StarfarerLauncher");
+		Class<?> c = StarsectorModExpander.class.getClassLoader().loadClass("com.fs.starfarer.StarfarerLauncher");
 		
 		Method main = c.getMethod("main", String[].class);
 		main.invoke(null, new Object[]{new String[0]});

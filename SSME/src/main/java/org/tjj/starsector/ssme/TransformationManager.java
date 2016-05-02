@@ -37,11 +37,7 @@ class TransformationManager implements ClassProvider {
 	 * (classes that have been modified at runtime) 
 	 */
 	private HashMap<String, byte[]> transformedClassData = new HashMap<>();
-	
-	/**
-	 * The class loader that interacts with the above transformedClassData
-	 */
-	private TransformingClassLoader loader;
+
 	/**
 	 * The class loader into which SSME mods are loaded.
 	 * This isolation prevents SSME mods from modify their own Transformer classes/libraries, or those of other SSME mods. 
@@ -72,16 +68,6 @@ class TransformationManager implements ClassProvider {
 		}
 		
 		modLoader = new ModClassLoader(baseModCp, StarsectorModExpander.class.getClassLoader());
-		loader = new TransformingClassLoader(this, modLoader);
-	}
-	
-	/**
-	 * returns the ClassLoader that will utilize this transformation pool.
-	 * 
-	 * @return
-	 */
-	ClassLoader getClassLoader() {
-		return loader;
 	}
 	
 	/**
@@ -131,9 +117,9 @@ class TransformationManager implements ClassProvider {
 		byte[] b = transformedClassData.get(classname);
 
 		if(b==null) {
-			returnValue = loader.getResourceAsStream(Utils.BinaryClassName.toFilename(classname));
+			returnValue = getClass().getResourceAsStream(Utils.BinaryClassName.toFilename(classname));
 			if(returnValue==null) {
-				throw new ClassNotFoundException(classname + " could not be found on the classpath");
+				throw new ClassNotFoundException(Utils.BinaryClassName.toFilename(classname) + " could not be found on the classpath");
 			}
 		}
 		else {
@@ -147,7 +133,7 @@ class TransformationManager implements ClassProvider {
 		if(transformedClassData.containsKey(classname)) {
 			return true;
 		}
-		if(loader.getResource(Utils.BinaryClassName.toFilename(classname))!=null) {
+		if(getClass().getResource(Utils.BinaryClassName.toFilename(classname))!=null) {
 			return true;
 		}
 		return false;

@@ -63,7 +63,7 @@ public class TransformerProxy implements ClassFileTransformer {
 	}
 	
 	@Override
-	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
 
 		loadedClasses.add(className);
 		
@@ -74,20 +74,21 @@ public class TransformerProxy implements ClassFileTransformer {
 		}
 		
 		String binaryName = Utils.InternalClassName.toBinaryName(className);
-		
-		boolean changed = false;
+		byte[] newClass = cc.getTransformedClass(binaryName);
+		if(newClass==null) {
+			newClass = classfileBuffer;
+		}
 		for (ClassTransformer transformer : transformers) {
-			byte [] returnValue = transformer.doLateTransformation(binaryName, classfileBuffer);
-			if(returnValue!=null) {
+			final byte [] transformedBytes = transformer.doLateTransformation(binaryName, newClass);
+			if(transformedBytes!=null) {
 //				System.out.println("transformed " + className + " from "  + loader);
-				changed = true;
-				classfileBuffer = returnValue;
+				newClass = transformedBytes;
+				cc.storeTransformedClass(binaryName, newClass);
 			}
 		}
 		
-		if(changed) {
-			cc.storeTransformedClass(binaryName, classfileBuffer);
-			return classfileBuffer;
+		if(newClass!=classfileBuffer) {
+			return newClass;
 		}
 		else {
 			return null;
