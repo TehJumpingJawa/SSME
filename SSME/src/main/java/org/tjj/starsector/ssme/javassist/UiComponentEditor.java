@@ -1,5 +1,7 @@
 package org.tjj.starsector.ssme.javassist;
 
+import org.tjj.starsector.ssme.asm.UiEditor;
+
 import javassist.CannotCompileException;
 import javassist.CtMethod;
 import javassist.NotFoundException;

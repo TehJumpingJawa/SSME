@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
-import org.tjj.starsector.ssme.javassist.UiEditor;
+import org.tjj.starsector.ssme.asm.UiEditor;
 import org.tjj.starsector.ssme.ui.AuthorizationUI;
 
 public class StarsectorModExpander {

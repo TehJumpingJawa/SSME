@@ -2,13 +2,15 @@ package org.tjj.starsector.ssme.asm;
 
 public class Literal {
 
-	public static final Literal UNKNOWN = new Literal();
+	public static final Literal UNKNOWN = new Literal("Value Unknown");
+	public static final Literal NULL = new Literal("null");
 	
-	private Literal() {
-		
+	private String s;
+	private Literal(String s) {
+		this.s = s;
 	}
 	
 	public String toString() {
-		return "UNKNOWN";
+		return s;
 	}
 }

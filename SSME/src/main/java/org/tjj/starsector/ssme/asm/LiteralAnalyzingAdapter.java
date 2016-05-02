@@ -419,17 +419,17 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             return;
         }
         if (cst instanceof Integer) {
-            push(new Variable(Opcodes.INTEGER, cst));
+            push(Variable.create((Integer)cst));
         } else if (cst instanceof Long) {
-            push(new Variable(Opcodes.LONG, cst));
+            push(Variable.create((Long)cst));
             push(Variable.UNKNOWN_TOP);
         } else if (cst instanceof Float) {
-            push(new Variable(Opcodes.FLOAT, cst));
+            push(Variable.create((Float)cst));
         } else if (cst instanceof Double) {
-            push(new Variable(Opcodes.DOUBLE, cst));
+            push(Variable.create((Double)cst));
             push(Variable.UNKNOWN_TOP);
         } else if (cst instanceof String) {
-            push(new Variable("java/lang/String", cst));
+            push(Variable.create((String)cst));
         } else if (cst instanceof Type) {
             int sort = ((Type) cst).getSort();
             if (sort == Type.OBJECT || sort == Type.ARRAY) {
@@ -597,9 +597,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop();
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		int i = (Integer)v.literalValue;
-        		v = new Variable(Opcodes.INTEGER, -i);
+        	if(v.isLiteral()) {
+        		v = Variable.create(-v.getInt());
         	}
         	push(v);
         }
@@ -608,9 +607,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop(2);
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		long l = (Long)v.literalValue;
-        		v = new Variable(Opcodes.LONG, -l);
+        	if(v.isLiteral()) {
+        		v = Variable.create(-v.getLong());
         	}
         	push(v);
         	push(Variable.UNKNOWN_TOP);
@@ -620,9 +618,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop();
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		float f = (Float)v.literalValue;
-        		v = new Variable(Opcodes.FLOAT, -f);
+        	if(v.isLiteral()) {
+        		v = Variable.create(-v.getFloat());
         	}
         	push(v);
         }
@@ -631,9 +628,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop();
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		double d = (Double)v.literalValue;
-        		v = new Variable(Opcodes.DOUBLE, -d);
+        	if(v.isLiteral()) {
+        		v = Variable.create(-v.getDouble());
         	}
         	push(v);
         	push(Variable.UNKNOWN_TOP);
@@ -643,9 +639,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop();
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		int i = (Integer)v.literalValue;
-        		v = new Variable(Opcodes.INTEGER, (byte)i);
+        	if(v.isLiteral()) {
+        		v = Variable.create((int)(byte)v.getInt());
         	}
         	push(v);
         }
@@ -654,9 +649,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop();
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		int i = (Integer)v.literalValue;
-        		v = new Variable(Opcodes.INTEGER, (char)i);
+        	if(v.isLiteral()) {
+        		v = Variable.create((int)(char)v.getInt());
         	}
         	push(v);
         }
@@ -665,9 +659,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         {
         	Variable v = pop();
         	
-        	if(v.literalValue!=Literal.UNKNOWN) {
-        		int i = (Integer)v.literalValue;
-        		v = new Variable(Opcodes.INTEGER, (short)i);
+        	if(v.isLiteral()) {
+        		v = Variable.create((int)(short)v.getInt());
         	}
         	push(v);
         }
@@ -700,10 +693,10 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	push(Variable.I5);
         	break;
         case Opcodes.BIPUSH:
-        	push(new Variable(Opcodes.INTEGER, (byte)iarg));
+        	push(Variable.create((int)(byte)iarg));
         	break;
         case Opcodes.SIPUSH:
-        	push(new Variable(Opcodes.INTEGER, (short)iarg));
+        	push(Variable.create((int)(short)iarg));
             break;
         case Opcodes.LCONST_0:
         	push(Variable.L0);
@@ -755,10 +748,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.D2L:
         {
             Variable v = pop(2);
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	double d = (Double)v.literalValue;
-            	long l = (long)d;
-            	push(new Variable(Opcodes.LONG, l));
+            if(v.isLiteral()) {
+            	push(Variable.create((long)v.getDouble()));
             }
             else {
             	push(Variable.UNKNOWN_LONG);
@@ -778,10 +769,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.L2D:
         {
             Variable v = pop(2);
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	long l = (Long)v.literalValue;
-            	double d = (double)l;
-            	push(new Variable(Opcodes.DOUBLE, d));
+            if(v.isLiteral()) {
+            	push(Variable.create((double)v.getLong()));
             }
             else {
             	push(Variable.UNKNOWN_DOUBLE);
@@ -930,8 +919,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) + ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() + a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -944,8 +932,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) - ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() - a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -958,8 +945,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) * ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() * a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -972,8 +958,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) / ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() / a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -986,8 +971,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) % ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() % a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1000,8 +984,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) & ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() & a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1014,8 +997,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) | ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() | a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1028,8 +1010,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) ^ ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() ^ a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1042,8 +1023,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) << ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() << a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1056,8 +1036,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) >> ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() >> a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1070,8 +1049,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		int i = ((Integer)b.literalValue) >>> ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.INTEGER, i));
+        		push(Variable.create(b.getInt() >> a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_INTEGER);
@@ -1081,10 +1059,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.L2I:
         {
         	Variable v = pop(2);
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	long l = (Long)v.literalValue;
-            	int i = (int)l;
-            	push(new Variable(Opcodes.INTEGER, i));
+            if(v.isLiteral()) {
+            	push(Variable.create((int)v.getLong()));
             }
             else {
             	push(Variable.UNKNOWN_INTEGER);
@@ -1094,10 +1070,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.D2I:
         {
         	Variable v = pop(2);
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	double d = (Double)v.literalValue;
-            	int i = (int)d;
-            	push(new Variable(Opcodes.INTEGER, i));
+            if(v.isLiteral()) {
+            	push(Variable.create((int)v.getDouble()));
             }
             else {
             	push(Variable.UNKNOWN_INTEGER);
@@ -1117,8 +1091,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) + ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() + a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1132,8 +1105,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) - ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() - a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1147,8 +1119,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) * ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() * a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1162,8 +1133,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) / ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create( b.getLong() / a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1177,8 +1147,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) % ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() % a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1192,8 +1161,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) & ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() & a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1207,8 +1175,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) | ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() | a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1222,8 +1189,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) ^ ((Long)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() ^ a.getLong()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1237,8 +1203,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		float f = ((Float)b.literalValue) + ((Float)a.literalValue);
-        		push(new Variable(Opcodes.FLOAT, f));
+        		push(Variable.create(b.getFloat() + a.getFloat()));
         	}
         	else {
         		push(Variable.UNKNOWN_FLOAT);
@@ -1251,8 +1216,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		float f = ((Float)b.literalValue) - ((Float)a.literalValue);
-        		push(new Variable(Opcodes.FLOAT, f));
+        		push(Variable.create(b.getFloat() - a.getFloat()));
         	}
         	else {
         		push(Variable.UNKNOWN_FLOAT);
@@ -1265,8 +1229,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		float f = ((Float)b.literalValue) * ((Float)a.literalValue);
-        		push(new Variable(Opcodes.FLOAT, f));
+        		push(Variable.create(b.getFloat() * a.getFloat()));
         	}
         	else {
         		push(Variable.UNKNOWN_FLOAT);
@@ -1279,8 +1242,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		float f = ((Float)b.literalValue) / ((Float)a.literalValue);
-        		push(new Variable(Opcodes.FLOAT, f));
+        		push(Variable.create(b.getFloat() / a.getFloat()));
         	}
         	else {
         		push(Variable.UNKNOWN_FLOAT);
@@ -1293,8 +1255,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop();
         	
         	if(bothKnown(a, b)) {
-        		float f = ((Float)b.literalValue) % ((Float)a.literalValue);
-        		push(new Variable(Opcodes.FLOAT, f));
+        		push(Variable.create(b.getFloat() % a.getFloat()));
         	}
         	else {
         		push(Variable.UNKNOWN_FLOAT);
@@ -1304,10 +1265,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.L2F:
         {
         	Variable v = pop(2);
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	long l = (Long)v.literalValue;
-            	float f = (float)l;
-            	push(new Variable(Opcodes.FLOAT, f));
+            if(v.isLiteral()) {
+            	push(Variable.create((float)v.getLong()));
             }
             else {
             	push(Variable.UNKNOWN_FLOAT);
@@ -1317,10 +1276,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.D2F:
         {
         	Variable v = pop(2);
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	double d = (Double)v.literalValue;
-            	float f = (float)d;
-            	push(new Variable(Opcodes.FLOAT, f));
+            if(v.isLiteral()) {
+            	push(Variable.create((float)v.getDouble()));
             }
             else {
             	push(Variable.UNKNOWN_FLOAT);
@@ -1333,8 +1290,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		double d = ((Double)b.literalValue) + ((Double)a.literalValue);
-        		push(new Variable(Opcodes.DOUBLE, d));
+        		push(Variable.create(b.getDouble() + a.getDouble()));
         	}
         	else {
         		push(Variable.UNKNOWN_DOUBLE);
@@ -1348,8 +1304,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		double d = ((Double)b.literalValue) - ((Double)a.literalValue);
-        		push(new Variable(Opcodes.DOUBLE, d));
+        		push(Variable.create(b.getDouble() - a.getDouble()));
         	}
         	else {
         		push(Variable.UNKNOWN_DOUBLE);
@@ -1363,8 +1318,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		double d = ((Double)b.literalValue) * ((Double)a.literalValue);
-        		push(new Variable(Opcodes.DOUBLE, d));
+        		push(Variable.create(b.getDouble() * a.getDouble()));
         	}
         	else {
         		push(Variable.UNKNOWN_DOUBLE);
@@ -1378,8 +1332,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		double d = ((Double)b.literalValue) / ((Double)a.literalValue);
-        		push(new Variable(Opcodes.DOUBLE, d));
+        		push(Variable.create(b.getDouble() / a.getDouble()));
         	}
         	else {
         		push(Variable.UNKNOWN_DOUBLE);
@@ -1393,8 +1346,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		double d = ((Double)b.literalValue) % ((Double)a.literalValue);
-        		push(new Variable(Opcodes.DOUBLE, d));
+        		push(Variable.create(b.getDouble() % a.getDouble()));
         	}
         	else {
         		push(Variable.UNKNOWN_DOUBLE);
@@ -1408,8 +1360,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) << ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() << a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1423,8 +1374,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) >> ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() >> a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1438,8 +1388,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	Variable b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		long l = ((Long)b.literalValue) >>> ((Integer)a.literalValue);
-        		push(new Variable(Opcodes.LONG, l));
+        		push(Variable.create(b.getLong() >>> a.getInt()));
         	}
         	else {
         		push(Variable.UNKNOWN_LONG);
@@ -1454,10 +1403,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.I2L:
         {
         	Variable v = pop();
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	int i = (Integer)v.literalValue;
-            	long l = (long)i;
-            	push(new Variable(Opcodes.LONG, l));
+            if(v.isLiteral()) {
+            	push(Variable.create((long)v.getInt()));
             }
             else {
             	push(Variable.UNKNOWN_LONG);
@@ -1468,10 +1415,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.F2L:
         {
         	Variable v = pop();
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	float f = (Float)v.literalValue;
-            	long l = (long)f;
-            	push(new Variable(Opcodes.LONG, l));
+            if(v.isLiteral()) {
+            	push(Variable.create((long)v.getFloat()));
             }
             else {
             	push(Variable.UNKNOWN_LONG);
@@ -1482,10 +1427,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.I2F:
         {
         	Variable v = pop();
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	int i = (Integer)v.literalValue;
-            	float f = (float)i;
-            	push(new Variable(Opcodes.FLOAT, f));
+            if(v.isLiteral()) {
+            	push(Variable.create((float)v.getInt()));
             }
             else {
             	push(Variable.UNKNOWN_FLOAT);
@@ -1495,10 +1438,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.I2D:
         {
         	Variable v = pop();
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	int i = (Integer)v.literalValue;
-            	double d = (double)i;
-            	push(new Variable(Opcodes.DOUBLE, d));
+            if(v.isLiteral()) {
+            	push(Variable.create((double)v.getInt()));
             }
             else {
             	push(Variable.UNKNOWN_DOUBLE);
@@ -1509,10 +1450,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.F2D:
         {
         	Variable v = pop();
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	float f = (Float)v.literalValue;
-            	double d = (double)f;
-            	push(new Variable(Opcodes.DOUBLE, d));
+            if(v.isLiteral()) {
+            	push(Variable.create((double)v.getFloat()));
             }
             else {
             	push(Variable.UNKNOWN_DOUBLE);
@@ -1523,10 +1462,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.F2I:
         {
         	Variable v = pop();
-            if(v.literalValue!=Literal.UNKNOWN) {
-            	float f = (Float)v.literalValue;
-            	int i = (int)f;
-            	push(new Variable(Opcodes.INTEGER, i));
+            if(v.isLiteral()) {
+            	push(Variable.create((int)v.getFloat()));
             }
             else {
             	push(Variable.UNKNOWN_INTEGER);
@@ -1614,7 +1551,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         labels = null;
     }
     
-    private boolean bothKnown(Variable a, Variable b) {
-    	return a.literalValue!= Literal.UNKNOWN && b.literalValue!=Literal.UNKNOWN;
+    private static boolean bothKnown(Variable a, Variable b) {
+    	return a.isLiteral() && b.isLiteral();
     }
 }
