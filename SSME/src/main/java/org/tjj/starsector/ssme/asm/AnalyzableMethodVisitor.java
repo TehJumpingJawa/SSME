@@ -6,11 +6,6 @@ import org.objectweb.asm.Type;
 public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 
 	private LiteralAnalyzingAdapter analyzer;
-	
-	public AnalyzableMethodVisitor(int api) {
-		super(api);
-		// TODO Auto-generated constructor stub
-	}
 
 	public AnalyzableMethodVisitor(int api, MethodVisitor mv) {
 		super(api, mv);
@@ -38,9 +33,24 @@ public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 			int argSize = argTypes[i].getSize();
 			stackOffset-=argSize;
 			Variable v = analyzer.stack.get(stackOffset);
-			parameterLiterals[i] = v.getLiteral();
+			parameterLiterals[i] = v.literalValue;
 		}
 		
 		return parameterLiterals;
+	}
+	
+	protected String[] getMethodArgumentSources(Type [] argTypes) {
+		String [] parameterSources = new String[argTypes.length];
+		
+		int stackOffset = analyzer.stack.size();
+		
+		for(int i = argTypes.length-1;i>=0;i--) {
+			int argSize = argTypes[i].getSize();
+			stackOffset-=argSize;
+			Variable v = analyzer.stack.get(stackOffset);
+			parameterSources[i] = v.sourceField;
+		}
+		
+		return parameterSources;		
 	}
 }

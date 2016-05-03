@@ -23,6 +23,9 @@ import javax.swing.JFrame;
 import org.tjj.starsector.ssme.asm.UiEditor;
 import org.tjj.starsector.ssme.ui.AuthorizationUI;
 
+import javassist.CannotCompileException;
+import javassist.NotFoundException;
+
 public class StarsectorModExpander {
 
 	public static final String VERSION = "SSME 1.0";

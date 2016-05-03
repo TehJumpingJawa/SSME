@@ -19,12 +19,10 @@ import com.google.common.collect.Iterables;
 
 public class UiEditor implements Opcodes {
 
-	public final Type uiComponentType;
-	public final Type alignmentType = Type.getObjectType("com/fs/starfarer/api/ui/Alignment");
-	public final MethodNode uiFactoryMethod;
+	public static final Type alignmentType = Type.getObjectType("com/fs/starfarer/api/ui/Alignment");
 
-	public final Type glLauncherType = Type.getObjectType("com/fs/starfarer/launcher/opengl/GLLauncher");
-	public final Type stringType = Type.getObjectType("java/lang/String");
+	public static final Type glLauncherType = Type.getObjectType("com/fs/starfarer/launcher/opengl/GLLauncher");
+	public static final Type stringType = Type.getObjectType("java/lang/String");
 
 	public UiEditor(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 
@@ -67,9 +65,9 @@ public class UiEditor implements Opcodes {
 			}
 		});
 
-		uiComponentType = Type.getType(modsField.desc);
+		Type uiComponentType = Type.getType(modsField.desc);
 
-		uiFactoryMethod = null;
+		MethodNode uiFactoryMethod = null;
 		
 		
 		String[] exceptions = new String[createLaunchUI.exceptions.size()];
@@ -77,46 +75,8 @@ public class UiEditor implements Opcodes {
 		
 		MethodNode newMethod = new MethodNode(createLaunchUI.access, createLaunchUI.name, createLaunchUI.desc, createLaunchUI.signature, exceptions); 
 
-		AnalyzableMethodVisitor m = new AnalyzableMethodVisitor(ASM5, newMethod) {
-			
-			boolean foundMods = false;
-			
-			@Override
-			public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-				Type methodDescriptor = Type.getMethodType(desc);
+		UiElementIdentifier m = new UiElementIdentifier(ASM5, newMethod, uiComponentType);
 
-				if (methodDescriptor.getReturnType().equals(uiComponentType)) {
-					Type[] methodParameters = methodDescriptor.getArgumentTypes();
-
-					if (Utils.typesMatch(methodParameters,
-							new Type[] { stringType, stringType, alignmentType, null, null })) {
-						Object[] parameterLiterals = getMethodArgumentLiterals(methodParameters);
-
-						if (parameterLiterals[0].equals("Mods...")) {
-							foundMods = true;
-						}
-
-					}
-
-				}
-				else if(foundMods) {
-					if(name.equals("inBMid")) {
-						Type inBMiddesc = Type.getMethodType(desc);
-						
-						Type[] params = inBMiddesc.getArgumentTypes();
-						
-						if(Utils.typesMatch(params, new Type[]{Type.FLOAT_TYPE})) {
-							if(getMethodArgumentLiterals(params)[0].equals(25.0F)) {
-								visitInsn(POP);
-								visitLdcInsn(0F);
-							}
-						}
-					}
-				}
-
-				super.visitMethodInsn(opcode, owner, name, desc, itf);
-			}
-		};
 
 		final LiteralAnalyzingAdapter analyzer = new LiteralAnalyzingAdapter(
 				"com.fs.starfarer.launcher.opengl.GLLauncher", createLaunchUI.access, createLaunchUI.name,

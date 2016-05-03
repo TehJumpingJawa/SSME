@@ -20,40 +20,49 @@ public final class Variable {
 	 * Will be one of:
 	 * Long, Integer, Float, Double, String, Literal.NULL, or Literal.UNKNOWN.
 	 */
-	private final Object literalValue;
+	public final Object literalValue;
+	
+	/**
+	 * The field from which the variable originated.
+	 */
+	public final String sourceField;
 
-	private Variable(Object type, Object literalValue) {
+	private Variable(Object type, Object literalValue, String sourceField) {
 		this.type = type;
 		this.literalValue = literalValue;
+		this.sourceField = sourceField;
 	}
 
 	public Variable(Object type) {
 		this.type = type;
 		this.literalValue = Literal.UNKNOWN;
+		this.sourceField = null;
+	}
+	
+	public Variable(Object type, String sourceField) {
+		this.type = type;
+		this.literalValue = Literal.UNKNOWN;
+		this.sourceField = sourceField;
 	}
 
 	public static Variable create(Integer literalValue) {
-		return new Variable(Opcodes.INTEGER, literalValue);
+		return new Variable(Opcodes.INTEGER, literalValue,null);
 	}
 
 	public static Variable create(Long literalValue) {
-		return new Variable(Opcodes.LONG, literalValue);
+		return new Variable(Opcodes.LONG, literalValue,null);
 	}
 
 	public static Variable create(Float literalValue) {
-		return new Variable(Opcodes.FLOAT, literalValue);
+		return new Variable(Opcodes.FLOAT, literalValue,null);
 	}
 
 	public static Variable create(Double literalValue) {
-		return new Variable(Opcodes.DOUBLE, literalValue);
+		return new Variable(Opcodes.DOUBLE, literalValue,null);
 	}
 
 	public static Variable create(String literalValue) {
-		return new Variable("java/lang/String", literalValue);
-	}
-
-	public Object getLiteral() {
-		return literalValue;
+		return new Variable("java/lang/String", literalValue,null);
 	}
 	
 	public double getDouble() {
@@ -86,7 +95,7 @@ public final class Variable {
 	public static final Variable UNKNOWN_CLASS = new Variable("java/lang/Class");
 	public static final Variable UNKNOWN_METHOD = new Variable("java/lang/invoke/MethodType");
 	public static final Variable UNKNOWN_HANDLE = new Variable("java/lang/invoke/MethodHandle");
-	public static final Variable NULL = new Variable(Opcodes.NULL, Literal.NULL);
+	public static final Variable NULL = new Variable(Opcodes.NULL, Literal.NULL,null);
 	public static final Variable M1 = create(-1);
 	public static final Variable I0 = create(0);
 	public static final Variable I1 = create(1);
@@ -106,7 +115,7 @@ public final class Variable {
 	public static final Variable D1 = create((double)1);
 
 	public String toString() {
-		return type + " : " + literalValue;
+		return "source=" + sourceField + ",type=" + type + ",value=" + literalValue;
 	}
 
 }

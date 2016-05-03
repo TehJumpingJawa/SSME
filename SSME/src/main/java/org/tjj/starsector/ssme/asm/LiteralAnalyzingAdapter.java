@@ -260,7 +260,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitInsn(opcode);
         }
-        execute(opcode, 0, null);
+        execute(opcode, 0, null, null);
         if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)
                 || opcode == Opcodes.ATHROW) {
             this.locals = null;
@@ -273,7 +273,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitIntInsn(opcode, operand);
         }
-        execute(opcode, operand, null);
+        execute(opcode, operand, null, null);
     }
 
     @Override
@@ -281,7 +281,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitVarInsn(opcode, var);
         }
-        execute(opcode, var, null);
+        execute(opcode, var, null, null);
     }
 
     @Override
@@ -302,7 +302,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitTypeInsn(opcode, type);
         }
-        execute(opcode, 0, type);
+        execute(opcode, 0, type, null);
     }
 
     @Override
@@ -311,7 +311,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitFieldInsn(opcode, owner, name, desc);
         }
-        execute(opcode, 0, desc);
+        execute(opcode, 0, desc, name);
     }
 
     @Deprecated
@@ -367,7 +367,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
                 }
             }
         }
-        pushDesc(desc);
+        pushDesc(desc, name);
         labels = null;
     }
 
@@ -382,7 +382,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             return;
         }
         pop(desc);
-        pushDesc(desc);
+        pushDesc(desc, name);
         labels = null;
     }
 
@@ -391,7 +391,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitJumpInsn(opcode, label);
         }
-        execute(opcode, 0, null);
+        execute(opcode, 0, null, null);
         if (opcode == Opcodes.GOTO) {
             this.locals = null;
             this.stack = null;
@@ -452,7 +452,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitIincInsn(var, increment);
         }
-        execute(Opcodes.IINC, var, null);
+        execute(Opcodes.IINC, var, null, null);
     }
 
     @Override
@@ -461,7 +461,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitTableSwitchInsn(min, max, dflt, labels);
         }
-        execute(Opcodes.TABLESWITCH, 0, null);
+        execute(Opcodes.TABLESWITCH, 0, null, null);
         this.locals = null;
         this.stack = null;
     }
@@ -472,7 +472,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitLookupSwitchInsn(dflt, keys, labels);
         }
-        execute(Opcodes.LOOKUPSWITCH, 0, null);
+        execute(Opcodes.LOOKUPSWITCH, 0, null, null);
         this.locals = null;
         this.stack = null;
     }
@@ -482,7 +482,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitMultiANewArrayInsn(desc, dims);
         }
-        execute(Opcodes.MULTIANEWARRAY, dims, desc);
+        execute(Opcodes.MULTIANEWARRAY, dims, desc, null);
     }
 
     @Override
@@ -514,7 +514,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         maxStack = Math.max(maxStack, stack.size());
     }
 
-    private void pushDesc(final String desc) {
+    private void pushDesc(final String desc, String name) {
         int index = desc.charAt(0) == '(' ? desc.indexOf(')') + 1 : 0;
         switch (desc.charAt(index)) {
         case 'V':
@@ -524,32 +524,33 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case 'B':
         case 'S':
         case 'I':
-            push(Variable.UNKNOWN_INTEGER);
+        	;        	
+            push(new Variable(Opcodes.INTEGER, name));
             return;
         case 'F':
-            push(Variable.UNKNOWN_FLOAT);
+            push(new Variable(Opcodes.FLOAT, name));
             return;
         case 'J':
-            push(Variable.UNKNOWN_FLOAT);
-            push(Variable.UNKNOWN_TOP);
+            push(new Variable(Opcodes.FLOAT, name));
+            push(new Variable(Opcodes.TOP, name));
             return;
         case 'D':
-            push(Variable.UNKNOWN_DOUBLE);
-            push(Variable.UNKNOWN_TOP);
+            push(new Variable(Opcodes.DOUBLE, name));
+            push(new Variable(Opcodes.TOP, name));
             return;
         case '[':
             if (index == 0) {
-                push(new Variable(desc));
+                push(new Variable(desc, name));
             } else {
-                push(new Variable(desc.substring(index, desc.length())));
+                push(new Variable(desc.substring(index, desc.length()), name));
             }
             break;
         // case 'L':
         default:
             if (index == 0) {
-                push(new Variable(desc.substring(1, desc.length() - 1)));
+                push(new Variable(desc.substring(1, desc.length() - 1), name));
             } else {
-                push(new Variable(desc.substring(index + 1, desc.length() - 1)));
+                push(new Variable(desc.substring(index + 1, desc.length() - 1), name));
             }
         }
     }
@@ -584,7 +585,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
     }
 
-    private void execute(final int opcode, final int iarg, final String sarg) {
+    private void execute(final int opcode, final int iarg, final String sarg, String name) {
         if (this.locals == null) {
             labels = null;
             return;
@@ -782,7 +783,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop(1);
             t1 = pop();
             if (t1.type instanceof String) {
-                pushDesc(((String) t1.type).substring(1));
+                pushDesc(((String) t1.type).substring(1), name);
             } else {
                 push(Variable.UNKNOWN_OBJECT);
             }
@@ -1488,14 +1489,14 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.RET:
             throw new RuntimeException("JSR/RET are not supported");
         case Opcodes.GETSTATIC:
-            pushDesc(sarg);
+            pushDesc(sarg, name);
             break;
         case Opcodes.PUTSTATIC:
             pop(sarg);
             break;
         case Opcodes.GETFIELD:
             pop(1);
-            pushDesc(sarg);
+            pushDesc(sarg, name);
             break;
         case Opcodes.PUTFIELD:
             pop(sarg);
@@ -1508,44 +1509,44 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop();
             switch (iarg) {
             case Opcodes.T_BOOLEAN:
-                pushDesc("[Z");
+                pushDesc("[Z", name);
                 break;
             case Opcodes.T_CHAR:
-                pushDesc("[C");
+                pushDesc("[C", name);
                 break;
             case Opcodes.T_BYTE:
-                pushDesc("[B");
+                pushDesc("[B", name);
                 break;
             case Opcodes.T_SHORT:
-                pushDesc("[S");
+                pushDesc("[S", name);
                 break;
             case Opcodes.T_INT:
-                pushDesc("[I");
+                pushDesc("[I", name);
                 break;
             case Opcodes.T_FLOAT:
-                pushDesc("[F");
+                pushDesc("[F", name);
                 break;
             case Opcodes.T_DOUBLE:
-                pushDesc("[D");
+                pushDesc("[D", name);
                 break;
             // case Opcodes.T_LONG:
             default:
-                pushDesc("[J");
+                pushDesc("[J", name);
                 break;
             }
             break;
         case Opcodes.ANEWARRAY:
             pop();
-            pushDesc("[" + Type.getObjectType(sarg));
+            pushDesc("[" + Type.getObjectType(sarg), name);
             break;
         case Opcodes.CHECKCAST:
             pop();
-            pushDesc(Type.getObjectType(sarg).getDescriptor());
+            pushDesc(Type.getObjectType(sarg).getDescriptor(), name);
             break;
         // case Opcodes.MULTIANEWARRAY:
         default:
             pop(iarg);
-            pushDesc(sarg);
+            pushDesc(sarg, name);
             break;
         }
         labels = null;
