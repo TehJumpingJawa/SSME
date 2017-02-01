@@ -14,6 +14,7 @@ import org.objectweb.asm.tree.MethodNode;
 import org.tjj.starsector.ssme.ClassAlreadyLoadedException;
 import org.tjj.starsector.ssme.ClassProvider;
 import org.tjj.starsector.ssme.asm.discoverers.FieldTypeDiscoverer;
+import org.tjj.starsector.ssme.asm.discoverers.InterfaceTypeDiscoverer;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -26,9 +27,20 @@ public class UiEditor implements Opcodes {
 	public static final Type stringType = Type.getObjectType("java/lang/String");
 	
 	public static final String glLauncherClassName = "com.fs.starfarer.launcher.opengl.GLLauncher";
-
+	private static final int glLauncherActionListenerInterfaceIndex = 1;
+	
+	/**
+	 * type of the panel class.
+	 */
 	public final Type uiPanelType;
+	/**
+	 * type of the component class.
+	 */
 	public final Type uiComponentType;
+	/**
+	 * type of the action listener interface.
+	 */
+	public final Type uiActionListenerType; 
 	
 	public UiEditor(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 
@@ -36,13 +48,13 @@ public class UiEditor implements Opcodes {
 		
 		FieldTypeDiscoverer uiPanelTypeDiscoverer = new FieldTypeDiscoverer("panel");
 		FieldTypeDiscoverer uiComponentTypeDiscoverer = new FieldTypeDiscoverer("launchButton", uiPanelTypeDiscoverer);
+		InterfaceTypeDiscoverer uiActionListenerTypeDiscoverer = new InterfaceTypeDiscoverer(glLauncherActionListenerInterfaceIndex, uiComponentTypeDiscoverer);
 		
-		cr.accept(uiComponentTypeDiscoverer, ClassReader.SKIP_FRAMES);
+		cr.accept(uiActionListenerTypeDiscoverer, ClassReader.SKIP_FRAMES);
 		
 		uiPanelType = uiPanelTypeDiscoverer.getFieldType();
-		
 		uiComponentType = uiComponentTypeDiscoverer.getFieldType();
-		
+		uiActionListenerType = uiActionListenerTypeDiscoverer.getInterfaceType();
 		
 		
 		
@@ -94,7 +106,7 @@ public class UiEditor implements Opcodes {
 		
 		MethodNode newMethod = new MethodNode(createLaunchUI.access, createLaunchUI.name, createLaunchUI.desc, createLaunchUI.signature, exceptions); 
 
-		UiElementIdentifier m = new UiElementIdentifier(ASM5, newMethod, uiComponentType);
+		UiElementIdentifier m = new UiElementIdentifier(ASM5, newMethod, this);
 
 
 		final LiteralAnalyzingAdapter analyzer = new LiteralAnalyzingAdapter(

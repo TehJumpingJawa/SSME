@@ -13,11 +13,11 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 		return fieldName;
 	}
 
-	private final Type uiComponentType;
+	private final UiEditor editor;
 
-	public UiElementIdentifier(int api, MethodVisitor mv, Type uiComponentType) {
+	public UiElementIdentifier(int api, MethodVisitor mv, UiEditor editor) {
 		super(api, mv);
-		this.uiComponentType = uiComponentType;
+		this.editor = editor;
 	}
 
 	enum State {
@@ -32,7 +32,7 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 
 		switch (state) {
 		case COMPONENT_CONSTRUCTION: {
-			if (methodDescriptor.getReturnType().equals(uiComponentType)) {
+			if (methodDescriptor.getReturnType().equals(editor.uiComponentType)) {
 				Type[] params = methodDescriptor.getArgumentTypes();
 
 				if (Utils.typesMatch(params,
