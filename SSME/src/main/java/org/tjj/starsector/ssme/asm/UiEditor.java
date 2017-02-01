@@ -13,6 +13,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.tjj.starsector.ssme.ClassAlreadyLoadedException;
 import org.tjj.starsector.ssme.ClassProvider;
+import org.tjj.starsector.ssme.asm.discoverers.FieldTypeDiscoverer;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -23,9 +24,37 @@ public class UiEditor implements Opcodes {
 
 	public static final Type glLauncherType = Type.getObjectType("com/fs/starfarer/launcher/opengl/GLLauncher");
 	public static final Type stringType = Type.getObjectType("java/lang/String");
+	
+	public static final String glLauncherClassName = "com.fs.starfarer.launcher.opengl.GLLauncher";
 
+	public final Type uiPanelType;
+	public final Type uiComponentType;
+	
 	public UiEditor(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 
+		ClassReader cr = new ClassReader(cc.getClass(glLauncherClassName));
+		
+		FieldTypeDiscoverer uiPanelTypeDiscoverer = new FieldTypeDiscoverer("panel");
+		FieldTypeDiscoverer uiComponentTypeDiscoverer = new FieldTypeDiscoverer("launchButton", uiPanelTypeDiscoverer);
+		
+		cr.accept(uiComponentTypeDiscoverer, ClassReader.SKIP_FRAMES);
+		
+		uiPanelType = uiPanelTypeDiscoverer.getFieldType();
+		
+		uiComponentType = uiComponentTypeDiscoverer.getFieldType();
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		testLauncherManipulation(cc);
+	}
+	
+	public void testLauncherManipulation(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 		String launcherClassname = "com.fs.starfarer.launcher.opengl.GLLauncher";
 		
 		ClassReader cr = new ClassReader(cc.getClass(launcherClassname));
@@ -57,16 +86,6 @@ public class UiEditor implements Opcodes {
 		}
 		MethodNode createLaunchUI = removedMethods.get(0);
 
-		@SuppressWarnings("unchecked")
-		FieldNode modsField = Iterables.find(cn.fields, new Predicate<FieldNode>() {
-			@Override
-			public boolean apply(FieldNode input) {
-				return input.name.equals("mods");
-			}
-		});
-
-		Type uiComponentType = Type.getType(modsField.desc);
-
 		MethodNode uiFactoryMethod = null;
 		
 		
@@ -92,8 +111,6 @@ public class UiEditor implements Opcodes {
 		cn.accept(cw);
 		
 		cc.saveTransformation(launcherClassname, cw.toByteArray());
-		
-
-
+				
 	}
 }

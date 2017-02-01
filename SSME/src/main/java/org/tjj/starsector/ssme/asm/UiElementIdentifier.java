@@ -33,13 +33,12 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 		switch (state) {
 		case COMPONENT_CONSTRUCTION: {
 			if (methodDescriptor.getReturnType().equals(uiComponentType)) {
-				Type[] methodParameters = methodDescriptor.getArgumentTypes();
+				Type[] params = methodDescriptor.getArgumentTypes();
 
-				if (Utils.typesMatch(methodParameters,
+				if (Utils.typesMatch(params,
 						new Type[] { UiEditor.stringType, UiEditor.stringType, UiEditor.alignmentType, null, null })) {
-					Object[] parameterLiterals = getMethodArgumentLiterals(methodParameters);
-
-					if (parameterLiterals[0].equals("Mods...")) {
+					
+					if ("Mods...".equals(getMethodArgumentInfo(params, 0).literalValue)) {
 						state = State.COMPONENT_ASSIGNMENT;
 					}
 
@@ -52,7 +51,7 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 			if (name.equals("add")) {
 				Type[] params = methodDescriptor.getArgumentTypes();
 
-				if (getMethodArgumentSources(params)[0].equals(fieldName)) {
+				if (fieldName.equals(getMethodArgumentInfo(params, 0).sourceField)) {
 					// found the add(mods) expression.
 					state = State.COMPONENT_POSITIONING;
 				}
@@ -64,9 +63,10 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 				Type[] params = methodDescriptor.getArgumentTypes();
 
 				if (Utils.typesMatch(params, new Type[] { Type.FLOAT_TYPE })) {
-					if (getMethodArgumentLiterals(params)[0].equals(25.0F)) {
-						visitInsn(POP);
-						visitLdcInsn(0F);
+					if(((Float)25F).equals(getMethodArgumentInfo(params, 0).literalValue)) {
+						name = "inTMid";
+//						visitInsn(POP);
+//						visitLdcInsn(0F);
 						state = State.DONE;
 					}
 				}

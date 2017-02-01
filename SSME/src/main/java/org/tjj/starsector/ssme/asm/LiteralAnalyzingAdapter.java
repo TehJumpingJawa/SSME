@@ -78,7 +78,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
      * this uninitialized value). This field is <tt>null</tt> for unreachable
      * instructions.
      */
-    public List<Variable> locals;
+    public List<StackElement> locals;
 
     /**
      * <code>List</code> of the operand stack slots for current execution frame.
@@ -92,7 +92,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
      * this uninitialized value). This field is <tt>null</tt> for unreachable
      * instructions.
      */
-    public List<Variable> stack;
+    public List<StackElement> stack;
     
     /**
      * The labels that designate the next instruction to be visited. May be
@@ -181,9 +181,9 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
 
         if ((access & Opcodes.ACC_STATIC) == 0) {
             if ("<init>".equals(name)) {
-                locals.add(Variable.UNKNOWN_UNINITIALIZED_THIS);
+                locals.add(StackElement.UNKNOWN_UNINITIALIZED_THIS);
             } else {
-                locals.add(new Variable(owner));
+                locals.add(new StackElement(owner));
             }
         }
         Type[] types = Type.getArgumentTypes(desc);
@@ -195,25 +195,25 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             case Type.BYTE:
             case Type.SHORT:
             case Type.INT:
-                locals.add(Variable.UNKNOWN_INTEGER);
+                locals.add(StackElement.UNKNOWN_INTEGER);
                 break;
             case Type.FLOAT:
-                locals.add(Variable.UNKNOWN_FLOAT);
+                locals.add(StackElement.UNKNOWN_FLOAT);
                 break;
             case Type.LONG:
-                locals.add(Variable.UNKNOWN_LONG);
-                locals.add(Variable.UNKNOWN_TOP);
+                locals.add(StackElement.UNKNOWN_LONG);
+                locals.add(StackElement.UNKNOWN_TOP);
                 break;
             case Type.DOUBLE:
-                locals.add(Variable.UNKNOWN_DOUBLE);
-                locals.add(Variable.UNKNOWN_TOP);
+                locals.add(StackElement.UNKNOWN_DOUBLE);
+                locals.add(StackElement.UNKNOWN_TOP);
                 break;
             case Type.ARRAY:
-                locals.add(new Variable(types[i].getDescriptor()));
+                locals.add(new StackElement(types[i].getDescriptor()));
                 break;
             // case Type.OBJECT:
             default:
-                locals.add(new Variable(types[i].getInternalName()));
+                locals.add(new StackElement(types[i].getInternalName()));
             }
         }
         maxLocals = locals.size();
@@ -240,16 +240,16 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
         for (int i = 0; i < nLocal; ++i) {
 		    Object type1 = local[i];
-		    locals.add(new Variable(type1));
+		    locals.add(new StackElement(type1));
 		    if (type1 == Opcodes.LONG || type1 == Opcodes.DOUBLE) {
-		        locals.add(Variable.UNKNOWN_TOP);
+		        locals.add(StackElement.UNKNOWN_TOP);
 		    }
 		}
         for (int i = 0; i < nStack; ++i) {
 		    Object type2 = stack[i];
-		    this.stack.add(new Variable(type2));
+		    this.stack.add(new StackElement(type2));
 		    if (type2 == Opcodes.LONG || type2 == Opcodes.DOUBLE) {
-		    	this.stack.add(Variable.UNKNOWN_TOP);
+		    	this.stack.add(StackElement.UNKNOWN_TOP);
 		    }
 		}
         maxStack = Math.max(maxStack, this.stack.size());
@@ -357,12 +357,12 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
                 }
                 for (int i = 0; i < locals.size(); ++i) {
                     if (locals.get(i).type == t) {
-                        locals.set(i, new Variable(u));
+                        locals.set(i, new StackElement(u));
                     }
                 }
                 for (int i = 0; i < stack.size(); ++i) {
                     if (stack.get(i).type == t) {
-                        stack.set(i, new Variable(u));
+                        stack.set(i, new StackElement(u));
                     }
                 }
             }
@@ -419,28 +419,28 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             return;
         }
         if (cst instanceof Integer) {
-            push(Variable.create((Integer)cst));
+            push(StackElement.create((Integer)cst));
         } else if (cst instanceof Long) {
-            push(Variable.create((Long)cst));
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.create((Long)cst));
+            push(StackElement.UNKNOWN_TOP);
         } else if (cst instanceof Float) {
-            push(Variable.create((Float)cst));
+            push(StackElement.create((Float)cst));
         } else if (cst instanceof Double) {
-            push(Variable.create((Double)cst));
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.create((Double)cst));
+            push(StackElement.UNKNOWN_TOP);
         } else if (cst instanceof String) {
-            push(Variable.create((String)cst));
+            push(StackElement.create((String)cst));
         } else if (cst instanceof Type) {
             int sort = ((Type) cst).getSort();
             if (sort == Type.OBJECT || sort == Type.ARRAY) {
-                push(Variable.UNKNOWN_CLASS);
+                push(StackElement.UNKNOWN_CLASS);
             } else if (sort == Type.METHOD) {
-                push(Variable.UNKNOWN_METHOD);
+                push(StackElement.UNKNOWN_METHOD);
             } else {
                 throw new IllegalArgumentException();
             }
         } else if (cst instanceof Handle) {
-            push(Variable.UNKNOWN_HANDLE);
+            push(StackElement.UNKNOWN_HANDLE);
         } else {
             throw new IllegalArgumentException();
         }
@@ -496,20 +496,20 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
 
     // ------------------------------------------------------------------------
 
-    private Variable get(final int local) {
+    private StackElement get(final int local) {
         maxLocals = Math.max(maxLocals, local + 1);
-        return local < locals.size() ? locals.get(local) : Variable.UNKNOWN_TOP;
+        return local < locals.size() ? locals.get(local) : StackElement.UNKNOWN_TOP;
     }
 
-    private void set(final int local, Variable v) {
+    private void set(final int local, StackElement v) {
         maxLocals = Math.max(maxLocals, local + 1);
         while (local >= locals.size()) {
-            locals.add(Variable.UNKNOWN_TOP);
+            locals.add(StackElement.UNKNOWN_TOP);
         }
         locals.set(local, v);
     }
 
-    private void push(Variable v) {
+    private void push(StackElement v) {
         stack.add(v);
         maxStack = Math.max(maxStack, stack.size());
     }
@@ -525,44 +525,44 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case 'S':
         case 'I':
         	;        	
-            push(new Variable(Opcodes.INTEGER, name));
+            push(new StackElement(Opcodes.INTEGER, name));
             return;
         case 'F':
-            push(new Variable(Opcodes.FLOAT, name));
+            push(new StackElement(Opcodes.FLOAT, name));
             return;
         case 'J':
-            push(new Variable(Opcodes.FLOAT, name));
-            push(new Variable(Opcodes.TOP, name));
+            push(new StackElement(Opcodes.FLOAT, name));
+            push(new StackElement(Opcodes.TOP, name));
             return;
         case 'D':
-            push(new Variable(Opcodes.DOUBLE, name));
-            push(new Variable(Opcodes.TOP, name));
+            push(new StackElement(Opcodes.DOUBLE, name));
+            push(new StackElement(Opcodes.TOP, name));
             return;
         case '[':
             if (index == 0) {
-                push(new Variable(desc, name));
+                push(new StackElement(desc, name));
             } else {
-                push(new Variable(desc.substring(index, desc.length()), name));
+                push(new StackElement(desc.substring(index, desc.length()), name));
             }
             break;
         // case 'L':
         default:
             if (index == 0) {
-                push(new Variable(desc.substring(1, desc.length() - 1), name));
+                push(new StackElement(desc.substring(1, desc.length() - 1), name));
             } else {
-                push(new Variable(desc.substring(index + 1, desc.length() - 1), name));
+                push(new StackElement(desc.substring(index + 1, desc.length() - 1), name));
             }
         }
     }
 
-    private Variable pop() {
+    private StackElement pop() {
         return stack.remove(stack.size() - 1);
     }
 
-    private Variable pop(final int n) {
+    private StackElement pop(final int n) {
         int size = stack.size();
         int end = size - n;
-        Variable last = null;
+        StackElement last = null;
         for (int i = size - 1; i >= end; --i) {
             last = stack.remove(i);
         }
@@ -590,78 +590,78 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             labels = null;
             return;
         }
-        Variable t1, t2, t3, t4;
+        StackElement t1, t2, t3, t4;
         switch (opcode) {
         case Opcodes.NOP:
         	break;
         case Opcodes.INEG:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
         	
         	if(v.isLiteral()) {
-        		v = Variable.create(-v.getInt());
+        		v = StackElement.create(-v.getInt());
         	}
         	push(v);
         }
         break;
         case Opcodes.LNEG:
         {
-        	Variable v = pop(2);
+        	StackElement v = pop(2);
         	
         	if(v.isLiteral()) {
-        		v = Variable.create(-v.getLong());
+        		v = StackElement.create(-v.getLong());
         	}
         	push(v);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;
         case Opcodes.FNEG:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
         	
         	if(v.isLiteral()) {
-        		v = Variable.create(-v.getFloat());
+        		v = StackElement.create(-v.getFloat());
         	}
         	push(v);
         }
         break;        	
         case Opcodes.DNEG:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
         	
         	if(v.isLiteral()) {
-        		v = Variable.create(-v.getDouble());
+        		v = StackElement.create(-v.getDouble());
         	}
         	push(v);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;        	
         case Opcodes.I2B:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
         	
         	if(v.isLiteral()) {
-        		v = Variable.create((int)(byte)v.getInt());
+        		v = StackElement.create((int)(byte)v.getInt());
         	}
         	push(v);
         }
         break;       	
         case Opcodes.I2C:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
         	
         	if(v.isLiteral()) {
-        		v = Variable.create((int)(char)v.getInt());
+        		v = StackElement.create((int)(char)v.getInt());
         	}
         	push(v);
         }
         break;     	
         case Opcodes.I2S:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
         	
         	if(v.isLiteral()) {
-        		v = Variable.create((int)(short)v.getInt());
+        		v = StackElement.create((int)(short)v.getInt());
         	}
         	push(v);
         }
@@ -670,59 +670,59 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.RETURN:
             break;
         case Opcodes.ACONST_NULL:
-            push(Variable.NULL);
+            push(StackElement.NULL);
             break;
         case Opcodes.ICONST_M1:
-        	push(Variable.M1);
+        	push(StackElement.M1);
         	break;
         case Opcodes.ICONST_0:
-        	push(Variable.I0);
+        	push(StackElement.I0);
         	break;
         case Opcodes.ICONST_1:
-        	push(Variable.I1);
+        	push(StackElement.I1);
         	break;
         case Opcodes.ICONST_2:
-        	push(Variable.I2);
+        	push(StackElement.I2);
         	break;
         case Opcodes.ICONST_3:
-        	push(Variable.I3);
+        	push(StackElement.I3);
         	break;
         case Opcodes.ICONST_4:
-        	push(Variable.I4);
+        	push(StackElement.I4);
         	break;
         case Opcodes.ICONST_5:
-        	push(Variable.I5);
+        	push(StackElement.I5);
         	break;
         case Opcodes.BIPUSH:
-        	push(Variable.create((int)(byte)iarg));
+        	push(StackElement.create((int)(byte)iarg));
         	break;
         case Opcodes.SIPUSH:
-        	push(Variable.create((int)(short)iarg));
+        	push(StackElement.create((int)(short)iarg));
             break;
         case Opcodes.LCONST_0:
-        	push(Variable.L0);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.L0);
+        	push(StackElement.UNKNOWN_TOP);
         	break;
         case Opcodes.LCONST_1:
-        	push(Variable.L1);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.L1);
+        	push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.FCONST_0:
-        	push(Variable.F0);
+        	push(StackElement.F0);
             break;
         case Opcodes.FCONST_1:
-        	push(Variable.F1);
+        	push(StackElement.F1);
             break;
         case Opcodes.FCONST_2:
-        	push(Variable.F2);
+        	push(StackElement.F2);
             break;
         case Opcodes.DCONST_0:
-        	push(Variable.D0);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.D0);
+        	push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.DCONST_1:
-        	push(Variable.D1);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.D1);
+        	push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.ILOAD:
         case Opcodes.FLOAD:
@@ -732,51 +732,51 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.LLOAD:
         case Opcodes.DLOAD:
             push(get(iarg));
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.IALOAD:
         case Opcodes.BALOAD:
         case Opcodes.CALOAD:
         case Opcodes.SALOAD:
             pop(2);
-            push(Variable.UNKNOWN_INTEGER);
+            push(StackElement.UNKNOWN_INTEGER);
             break;
         case Opcodes.LALOAD:
         	pop(2);
-        	push(Variable.UNKNOWN_LONG);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_LONG);
+        	push(StackElement.UNKNOWN_TOP);
         	break;
         case Opcodes.D2L:
         {
-            Variable v = pop(2);
+            StackElement v = pop(2);
             if(v.isLiteral()) {
-            	push(Variable.create((long)v.getDouble()));
+            	push(StackElement.create((long)v.getDouble()));
             }
             else {
-            	push(Variable.UNKNOWN_LONG);
+            	push(StackElement.UNKNOWN_LONG);
             }
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
             break;
         }
         case Opcodes.FALOAD:
             pop(2);
-            push(Variable.UNKNOWN_FLOAT);
+            push(StackElement.UNKNOWN_FLOAT);
             break;
         case Opcodes.DALOAD:
         	pop(2);
-        	push(Variable.UNKNOWN_DOUBLE);
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_DOUBLE);
+        	push(StackElement.UNKNOWN_TOP);
         	break;
         case Opcodes.L2D:
         {
-            Variable v = pop(2);
+            StackElement v = pop(2);
             if(v.isLiteral()) {
-            	push(Variable.create((double)v.getLong()));
+            	push(StackElement.create((double)v.getLong()));
             }
             else {
-            	push(Variable.UNKNOWN_DOUBLE);
+            	push(StackElement.UNKNOWN_DOUBLE);
             }
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
             break;
         }
         case Opcodes.AALOAD:
@@ -785,7 +785,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             if (t1.type instanceof String) {
                 pushDesc(((String) t1.type).substring(1), name);
             } else {
-                push(Variable.UNKNOWN_OBJECT);
+                push(StackElement.UNKNOWN_OBJECT);
             }
             break;
         case Opcodes.ISTORE:
@@ -796,7 +796,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             if (iarg > 0) {
                 t2 = get(iarg - 1);
                 if (t2.type == Opcodes.LONG || t2.type == Opcodes.DOUBLE) {
-                    set(iarg - 1, Variable.UNKNOWN_TOP);
+                    set(iarg - 1, StackElement.UNKNOWN_TOP);
                 }
             }
             break;
@@ -805,11 +805,11 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop(1);
             t1 = pop();
             set(iarg, t1);
-            set(iarg + 1, Variable.UNKNOWN_TOP);
+            set(iarg + 1, StackElement.UNKNOWN_TOP);
             if (iarg > 0) {
                 t2 = get(iarg - 1);
                 if (t2.type == Opcodes.LONG || t2.type == Opcodes.DOUBLE) {
-                    set(iarg - 1, Variable.UNKNOWN_TOP);
+                    set(iarg - 1, StackElement.UNKNOWN_TOP);
                 }
             }
             break;
@@ -916,166 +916,166 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             break;
         case Opcodes.IADD:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() + a.getInt()));
+        		push(StackElement.create(b.getInt() + a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;
         case Opcodes.ISUB:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() - a.getInt()));
+        		push(StackElement.create(b.getInt() - a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;        	
         case Opcodes.IMUL:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() * a.getInt()));
+        		push(StackElement.create(b.getInt() * a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;        	
         case Opcodes.IDIV:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() / a.getInt()));
+        		push(StackElement.create(b.getInt() / a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.IREM:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() % a.getInt()));
+        		push(StackElement.create(b.getInt() % a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.IAND:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() & a.getInt()));
+        		push(StackElement.create(b.getInt() & a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.IOR:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() | a.getInt()));
+        		push(StackElement.create(b.getInt() | a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.IXOR:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() ^ a.getInt()));
+        		push(StackElement.create(b.getInt() ^ a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.ISHL:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() << a.getInt()));
+        		push(StackElement.create(b.getInt() << a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.ISHR:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() >> a.getInt()));
+        		push(StackElement.create(b.getInt() >> a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.IUSHR:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getInt() >> a.getInt()));
+        		push(StackElement.create(b.getInt() >> a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_INTEGER);
+        		push(StackElement.UNKNOWN_INTEGER);
         	}
         }
         break;         	
         case Opcodes.L2I:
         {
-        	Variable v = pop(2);
+        	StackElement v = pop(2);
             if(v.isLiteral()) {
-            	push(Variable.create((int)v.getLong()));
+            	push(StackElement.create((int)v.getLong()));
             }
             else {
-            	push(Variable.UNKNOWN_INTEGER);
+            	push(StackElement.UNKNOWN_INTEGER);
             }
         }
         break;
         case Opcodes.D2I:
         {
-        	Variable v = pop(2);
+        	StackElement v = pop(2);
             if(v.isLiteral()) {
-            	push(Variable.create((int)v.getDouble()));
+            	push(StackElement.create((int)v.getDouble()));
             }
             else {
-            	push(Variable.UNKNOWN_INTEGER);
+            	push(StackElement.UNKNOWN_INTEGER);
             }
         }
         break;
@@ -1084,397 +1084,397 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.FCMPG:
         	//TODO so can this.
             pop(2);
-            push(Variable.UNKNOWN_INTEGER);
+            push(StackElement.UNKNOWN_INTEGER);
             break;
         case Opcodes.LADD:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() + a.getLong()));
+        		push(StackElement.create(b.getLong() + a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.LSUB:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() - a.getLong()));
+        		push(StackElement.create(b.getLong() - a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.LMUL:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() * a.getLong()));
+        		push(StackElement.create(b.getLong() * a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.LDIV:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create( b.getLong() / a.getLong()));
+        		push(StackElement.create( b.getLong() / a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.LREM:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() % a.getLong()));
+        		push(StackElement.create(b.getLong() % a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.LAND:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() & a.getLong()));
+        		push(StackElement.create(b.getLong() & a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.LOR:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() | a.getLong()));
+        		push(StackElement.create(b.getLong() | a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break; 
         case Opcodes.LXOR:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() ^ a.getLong()));
+        		push(StackElement.create(b.getLong() ^ a.getLong()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;         	
         case Opcodes.FADD:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getFloat() + a.getFloat()));
+        		push(StackElement.create(b.getFloat() + a.getFloat()));
         	}
         	else {
-        		push(Variable.UNKNOWN_FLOAT);
+        		push(StackElement.UNKNOWN_FLOAT);
         	}
         }
         break;         	
         case Opcodes.FSUB:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getFloat() - a.getFloat()));
+        		push(StackElement.create(b.getFloat() - a.getFloat()));
         	}
         	else {
-        		push(Variable.UNKNOWN_FLOAT);
+        		push(StackElement.UNKNOWN_FLOAT);
         	}
         }
         break;         	
         case Opcodes.FMUL:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getFloat() * a.getFloat()));
+        		push(StackElement.create(b.getFloat() * a.getFloat()));
         	}
         	else {
-        		push(Variable.UNKNOWN_FLOAT);
+        		push(StackElement.UNKNOWN_FLOAT);
         	}
         }
         break;         	
         case Opcodes.FDIV:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getFloat() / a.getFloat()));
+        		push(StackElement.create(b.getFloat() / a.getFloat()));
         	}
         	else {
-        		push(Variable.UNKNOWN_FLOAT);
+        		push(StackElement.UNKNOWN_FLOAT);
         	}
         }
         break;         	
         case Opcodes.FREM:
         {
-        	Variable a = pop();
-        	Variable b = pop();
+        	StackElement a = pop();
+        	StackElement b = pop();
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getFloat() % a.getFloat()));
+        		push(StackElement.create(b.getFloat() % a.getFloat()));
         	}
         	else {
-        		push(Variable.UNKNOWN_FLOAT);
+        		push(StackElement.UNKNOWN_FLOAT);
         	}
         }
         break;         	
         case Opcodes.L2F:
         {
-        	Variable v = pop(2);
+        	StackElement v = pop(2);
             if(v.isLiteral()) {
-            	push(Variable.create((float)v.getLong()));
+            	push(StackElement.create((float)v.getLong()));
             }
             else {
-            	push(Variable.UNKNOWN_FLOAT);
+            	push(StackElement.UNKNOWN_FLOAT);
             }
         }
         break;        	
         case Opcodes.D2F:
         {
-        	Variable v = pop(2);
+        	StackElement v = pop(2);
             if(v.isLiteral()) {
-            	push(Variable.create((float)v.getDouble()));
+            	push(StackElement.create((float)v.getDouble()));
             }
             else {
-            	push(Variable.UNKNOWN_FLOAT);
+            	push(StackElement.UNKNOWN_FLOAT);
             }
         }
         break;
         case Opcodes.DADD:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getDouble() + a.getDouble()));
+        		push(StackElement.create(b.getDouble() + a.getDouble()));
         	}
         	else {
-        		push(Variable.UNKNOWN_DOUBLE);
+        		push(StackElement.UNKNOWN_DOUBLE);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;        	
         case Opcodes.DSUB:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getDouble() - a.getDouble()));
+        		push(StackElement.create(b.getDouble() - a.getDouble()));
         	}
         	else {
-        		push(Variable.UNKNOWN_DOUBLE);
+        		push(StackElement.UNKNOWN_DOUBLE);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;          	
         case Opcodes.DMUL:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getDouble() * a.getDouble()));
+        		push(StackElement.create(b.getDouble() * a.getDouble()));
         	}
         	else {
-        		push(Variable.UNKNOWN_DOUBLE);
+        		push(StackElement.UNKNOWN_DOUBLE);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;          	
         case Opcodes.DDIV:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getDouble() / a.getDouble()));
+        		push(StackElement.create(b.getDouble() / a.getDouble()));
         	}
         	else {
-        		push(Variable.UNKNOWN_DOUBLE);
+        		push(StackElement.UNKNOWN_DOUBLE);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;          	
         case Opcodes.DREM:
         {
-        	Variable a = pop(2);
-        	Variable b = pop(2);
+        	StackElement a = pop(2);
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getDouble() % a.getDouble()));
+        		push(StackElement.create(b.getDouble() % a.getDouble()));
         	}
         	else {
-        		push(Variable.UNKNOWN_DOUBLE);
+        		push(StackElement.UNKNOWN_DOUBLE);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;  
         case Opcodes.LSHL:
         {
-        	Variable a = pop();
-        	Variable b = pop(2);
+        	StackElement a = pop();
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() << a.getInt()));
+        		push(StackElement.create(b.getLong() << a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;
         case Opcodes.LSHR:
         {
-        	Variable a = pop();
-        	Variable b = pop(2);
+        	StackElement a = pop();
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() >> a.getInt()));
+        		push(StackElement.create(b.getLong() >> a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;        	
         case Opcodes.LUSHR:
         {
-        	Variable a = pop();
-        	Variable b = pop(2);
+        	StackElement a = pop();
+        	StackElement b = pop(2);
         	
         	if(bothKnown(a, b)) {
-        		push(Variable.create(b.getLong() >>> a.getInt()));
+        		push(StackElement.create(b.getLong() >>> a.getInt()));
         	}
         	else {
-        		push(Variable.UNKNOWN_LONG);
+        		push(StackElement.UNKNOWN_LONG);
         	}
-        	push(Variable.UNKNOWN_TOP);
+        	push(StackElement.UNKNOWN_TOP);
         }
         break;
         case Opcodes.IINC:
         	//TODO this can be determined too.
-            set(iarg, Variable.UNKNOWN_INTEGER);
+            set(iarg, StackElement.UNKNOWN_INTEGER);
             break;
         case Opcodes.I2L:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
             if(v.isLiteral()) {
-            	push(Variable.create((long)v.getInt()));
+            	push(StackElement.create((long)v.getInt()));
             }
             else {
-            	push(Variable.UNKNOWN_LONG);
+            	push(StackElement.UNKNOWN_LONG);
             }
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
         }
         break;        	
         case Opcodes.F2L:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
             if(v.isLiteral()) {
-            	push(Variable.create((long)v.getFloat()));
+            	push(StackElement.create((long)v.getFloat()));
             }
             else {
-            	push(Variable.UNKNOWN_LONG);
+            	push(StackElement.UNKNOWN_LONG);
             }
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
         }
         break;
         case Opcodes.I2F:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
             if(v.isLiteral()) {
-            	push(Variable.create((float)v.getInt()));
+            	push(StackElement.create((float)v.getInt()));
             }
             else {
-            	push(Variable.UNKNOWN_FLOAT);
+            	push(StackElement.UNKNOWN_FLOAT);
             }
         }
         break;
         case Opcodes.I2D:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
             if(v.isLiteral()) {
-            	push(Variable.create((double)v.getInt()));
+            	push(StackElement.create((double)v.getInt()));
             }
             else {
-            	push(Variable.UNKNOWN_DOUBLE);
+            	push(StackElement.UNKNOWN_DOUBLE);
             }
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
         }
         break;          	
         case Opcodes.F2D:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
             if(v.isLiteral()) {
-            	push(Variable.create((double)v.getFloat()));
+            	push(StackElement.create((double)v.getFloat()));
             }
             else {
-            	push(Variable.UNKNOWN_DOUBLE);
+            	push(StackElement.UNKNOWN_DOUBLE);
             }
-            push(Variable.UNKNOWN_TOP);
+            push(StackElement.UNKNOWN_TOP);
         }
         break; 
         case Opcodes.F2I:
         {
-        	Variable v = pop();
+        	StackElement v = pop();
             if(v.isLiteral()) {
-            	push(Variable.create((int)v.getFloat()));
+            	push(StackElement.create((int)v.getFloat()));
             }
             else {
-            	push(Variable.UNKNOWN_INTEGER);
+            	push(StackElement.UNKNOWN_INTEGER);
             }
         }
         break;         	
         case Opcodes.ARRAYLENGTH:
         case Opcodes.INSTANCEOF:
             pop(1);
-            push(Variable.UNKNOWN_INTEGER);
+            push(StackElement.UNKNOWN_INTEGER);
             break;
         case Opcodes.LCMP:
             //TODO this can be known
@@ -1483,7 +1483,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.DCMPG:
             //TODO this can be known
             pop(4);
-            push(Variable.UNKNOWN_INTEGER);
+            push(StackElement.UNKNOWN_INTEGER);
             break;
         case Opcodes.JSR:
         case Opcodes.RET:
@@ -1503,7 +1503,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop();
             break;
         case Opcodes.NEW:
-            push(new Variable(labels.get(0)));
+            push(new StackElement(labels.get(0)));
             break;
         case Opcodes.NEWARRAY:
             pop();
@@ -1552,7 +1552,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         labels = null;
     }
     
-    private static boolean bothKnown(Variable a, Variable b) {
+    private static boolean bothKnown(StackElement a, StackElement b) {
     	return a.isLiteral() && b.isLiteral();
     }
 }

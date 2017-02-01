@@ -15,6 +15,26 @@ public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 	public void setAnalyzer(LiteralAnalyzingAdapter analyzer) {
 		this.analyzer = analyzer;
 	}
+
+	
+	/**
+	 * 
+	 * @param argTypes
+	 * @param argIndex
+	 * @return
+	 */
+	protected StackElement getMethodArgumentInfo(Type [] argTypes, int argIndex) {
+		assert argIndex>=0 && argIndex<argTypes.length;
+		
+		int stackOffset = analyzer.stack.size();
+		
+		for(int i = argTypes.length-1;i>=argIndex;i--) {
+			int argSize = argTypes[i].getSize();
+			stackOffset-=argSize;
+		}
+		
+		return analyzer.stack.get(stackOffset);
+	}
 	
 	/**
 	 * Uses the provided method descriptor to retrieve the argument literals from the current stack state.
@@ -24,33 +44,18 @@ public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 	 * @param argTypes method descriptor argument types.
 	 * @return
 	 */
-	protected Object[] getMethodArgumentLiterals(Type [] argTypes) {
-		Object [] parameterLiterals = new Object[argTypes.length];
+	protected StackElement[] getMethodArgumentInfos(Type [] argTypes) {
+		StackElement [] parameterLiterals = new StackElement[argTypes.length];
 		
 		int stackOffset = analyzer.stack.size();
 		
 		for(int i = argTypes.length-1;i>=0;i--) {
 			int argSize = argTypes[i].getSize();
 			stackOffset-=argSize;
-			Variable v = analyzer.stack.get(stackOffset);
-			parameterLiterals[i] = v.literalValue;
+			StackElement v = analyzer.stack.get(stackOffset);
+			parameterLiterals[i] = v;
 		}
 		
 		return parameterLiterals;
-	}
-	
-	protected String[] getMethodArgumentSources(Type [] argTypes) {
-		String [] parameterSources = new String[argTypes.length];
-		
-		int stackOffset = analyzer.stack.size();
-		
-		for(int i = argTypes.length-1;i>=0;i--) {
-			int argSize = argTypes[i].getSize();
-			stackOffset-=argSize;
-			Variable v = analyzer.stack.get(stackOffset);
-			parameterSources[i] = v.sourceField;
-		}
-		
-		return parameterSources;		
 	}
 }
