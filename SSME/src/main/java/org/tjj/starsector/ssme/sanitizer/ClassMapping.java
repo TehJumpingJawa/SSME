@@ -90,7 +90,7 @@ public class ClassMapping implements Opcodes {
 				
 				// all synthetic classes will need their names deobfuscated.
 				if(isObfuscatedClass(context, proposedNewName, simpleClassname, true) || !context.registerOutputName(proposedNewName)) {
-					newName = outerClassNewName + "$" + makeObfuscatedName();
+					newName = outerClassNewName + "$" + makeDeobfuscatedName();
 					if(!context.registerOutputName(newName)) {
 						throw new RuntimeException("unexpected class naming collision: " + newName);
 					}
@@ -124,7 +124,7 @@ public class ClassMapping implements Opcodes {
 						// we don't need to deobfuscate the package, it's already been done for the outer class, so we just use that.
 						final String deobfuscatedPackagePath = Utils.InternalClassName.getPackage(outerClass.getNewName());
 
-						newName = deobfuscatedPackagePath + makeObfuscatedName() + "from" + Utils.InternalClassName.getSimpleName(outerClass.getNewName()).replace('$', '_');
+						newName = deobfuscatedPackagePath + makeDeobfuscatedName() + "from" + Utils.InternalClassName.getSimpleName(outerClass.getNewName()).replace('$', '_');
 						if(!context.registerOutputName(newName)) {
 							throw new RuntimeException("unexpected class naming collision: " + newName);
 						}
@@ -141,7 +141,7 @@ public class ClassMapping implements Opcodes {
 						String proposedNewName = outerClassNewName + "$" + simpleClassname;
 	
 						if(isObfuscatedClass(context, proposedNewName, simpleClassname, false) || !context.registerOutputName(proposedNewName)) {
-							newName = outerClassNewName + "$" + makeObfuscatedName();
+							newName = outerClassNewName + "$" + makeDeobfuscatedName();
 							if(!context.registerOutputName(newName)) {
 								throw new RuntimeException("unexpected class naming collision: " + newName);
 							}							
@@ -160,7 +160,7 @@ public class ClassMapping implements Opcodes {
 					
 					String proposedNewName = deobfuscatedPackagePath + simpleClassname;
 					if(isObfuscatedClass(context, proposedNewName, simpleClassname, false) || !context.registerOutputName(proposedNewName)) {
-						newName = deobfuscatedPackagePath + makeObfuscatedName();
+						newName = deobfuscatedPackagePath + makeDeobfuscatedName();
 						if(!context.registerOutputName(newName)) {
 							throw new RuntimeException("unexpected class naming collision: " + newName);
 						}						
@@ -180,7 +180,7 @@ public class ClassMapping implements Opcodes {
 		return newName;
 	}
 	
-	private String makeObfuscatedName() {
+	private String makeDeobfuscatedName() {
 		final boolean isInterface = checkAccess(ACC_INTERFACE, classNode.access); 
 		final boolean isEnum = checkAccess(ACC_ENUM, classNode.access);
 
