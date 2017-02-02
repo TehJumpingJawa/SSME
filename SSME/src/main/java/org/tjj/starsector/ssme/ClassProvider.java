@@ -15,15 +15,13 @@ public interface ClassProvider {
 	 */
 	public InputStream getClass(String classname) throws ClassNotFoundException;
 	
+
+
 	/**
-	 * Returns the obfuscation map shared by all mods.
-	 * The obfuscation map holds mappings between mod-designated keys, and obfuscated class names.
-	 * 
-	 * Mods are free to add key -> obfuscated class name mappings to allow other mods to operate more efficiently.
-	 * 
+	 * return the discovered names of obfuscated types. 
 	 * @return
 	 */
-	public Map<String, String> getObfuscationMap();
+	public StarsectorTypes getObfuscatedTypes();
 	
 	/**
 	 * returns whether or not the specified classname exists within the scope of this ClassProvider.

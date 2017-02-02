@@ -24,13 +24,10 @@ class TransformationManager implements ClassProvider {
 	 * Once early transformations have been completed, the transformation pool becomes read only.
 	 */
 	private boolean readOnly = false;
-	
-	private HashMap<String, String> obfuscationMap = new HashMap<>();
-	
-	/**
-	 * the deobfuscation map
-	 */
-	private Map<String, String> sanitisedMappings;
+
+
+
+	public final StarsectorTypes obfuscatedTypes;
 	
 	/**
 	 * the bytes of all transformed classes.
@@ -68,6 +65,8 @@ class TransformationManager implements ClassProvider {
 		}
 		
 		modLoader = new ModClassLoader(baseModCp, StarsectorModExpander.class.getClassLoader());
+		
+		obfuscatedTypes = new StarsectorTypes(this);
 	}
 	
 	/**
@@ -161,7 +160,7 @@ class TransformationManager implements ClassProvider {
 	}
 
 	@Override
-	public Map<String, String> getObfuscationMap() {
-		return obfuscationMap;
+	public StarsectorTypes getObfuscatedTypes() {
+		return obfuscatedTypes;
 	}
 }

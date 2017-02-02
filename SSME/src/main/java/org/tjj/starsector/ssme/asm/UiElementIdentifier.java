@@ -3,6 +3,7 @@ package org.tjj.starsector.ssme.asm;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.tjj.starsector.ssme.StarsectorTypes;
 
 public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opcodes {
 
@@ -13,11 +14,11 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 		return fieldName;
 	}
 
-	private final UiEditor editor;
+	private final StarsectorTypes types;
 
-	public UiElementIdentifier(int api, MethodVisitor mv, UiEditor editor) {
+	public UiElementIdentifier(int api, MethodVisitor mv, StarsectorTypes types) {
 		super(api, mv);
-		this.editor = editor;
+		this.types = types;
 	}
 
 	enum State {
@@ -32,11 +33,11 @@ public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opco
 
 		switch (state) {
 		case COMPONENT_CONSTRUCTION: {
-			if (methodDescriptor.getReturnType().equals(editor.uiComponentType)) {
+			if (methodDescriptor.getReturnType().equals(types.uiComponent)) {
 				Type[] params = methodDescriptor.getArgumentTypes();
 
 				if (Utils.typesMatch(params,
-						new Type[] { UiEditor.stringType, UiEditor.stringType, UiEditor.alignmentType, null, null })) {
+						new Type[] { types.string, types.string, types.alignment, null, null })) {
 					
 					if ("Mods...".equals(getMethodArgumentInfo(params, 0).literalValue)) {
 						state = State.COMPONENT_ASSIGNMENT;

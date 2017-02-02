@@ -26,26 +26,6 @@ public class BetterClassPool extends ClassPool {
 	}
 	
 	/**
-	 * Convenience method for retrieving previously identified classes. 
-	 * 
-	 * @param key
-	 * @return 		The name associated with the specified key, or null if the class has not yet been identified.
-	 */
-	public String getIdentifiedClassName(String key) {
-		return provider.getObfuscationMap().get(key);
-	}
-	
-	/**
-	 * Convenience method for storing an identified class.
-	 * 
-	 * @param key The key to associate the identified class with.
-	 * @param className
-	 */
-	public void putIdentifiedClassName(String key, String className) {
-		provider.getObfuscationMap().put(key, className);
-	}
-
-	/**
 	 * returns a list of all the CtClasses loaded by this pool that have outstanding modifications.
 	 * @return
 	 */

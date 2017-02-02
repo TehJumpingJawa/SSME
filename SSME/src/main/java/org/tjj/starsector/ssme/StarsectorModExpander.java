@@ -94,7 +94,7 @@ public class StarsectorModExpander {
 	 */
 	private static void doLauncherPreferencesTransformation(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 		
-		new UiEditor(cc);
+		new UiEditor(cc, "", "");
 		
 //		if(false) {
 //			
@@ -237,6 +237,7 @@ public class StarsectorModExpander {
 			Sanitizer s = new Sanitizer(cc, writeClasses, "starfarer_obf.jar", "fs.common_obf.jar", "fs.sound_obf.jar").apply();
 			cl = new SanitizedClassLoader(cc, cl);
 		}
+		
 		doLauncherPreferencesTransformation(cc);
 
 		Class<?> c = cl.loadClass("com.fs.starfarer.StarfarerLauncher");

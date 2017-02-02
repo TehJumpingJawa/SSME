@@ -13,6 +13,7 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.tjj.starsector.ssme.ClassAlreadyLoadedException;
 import org.tjj.starsector.ssme.ClassProvider;
+import org.tjj.starsector.ssme.StarsectorTypes;
 import org.tjj.starsector.ssme.asm.discoverers.FieldTypeDiscoverer;
 import org.tjj.starsector.ssme.asm.discoverers.InterfaceTypeDiscoverer;
 
@@ -21,55 +22,16 @@ import com.google.common.collect.Iterables;
 
 public class UiEditor implements Opcodes {
 
-	public static final Type alignmentType = Type.getObjectType("com/fs/starfarer/api/ui/Alignment");
+	public UiEditor(ClassProvider cc, String type, String method) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 
-	public static final Type glLauncherType = Type.getObjectType("com/fs/starfarer/launcher/opengl/GLLauncher");
-	public static final Type stringType = Type.getObjectType("java/lang/String");
-	
-	public static final String glLauncherClassName = "com.fs.starfarer.launcher.opengl.GLLauncher";
-	private static final int glLauncherActionListenerInterfaceIndex = 1;
-	
-	/**
-	 * type of the panel class.
-	 */
-	public final Type uiPanelType;
-	/**
-	 * type of the component class.
-	 */
-	public final Type uiComponentType;
-	/**
-	 * type of the action listener interface.
-	 */
-	public final Type uiActionListenerType; 
-	
-	public UiEditor(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
-
-		ClassReader cr = new ClassReader(cc.getClass(glLauncherClassName));
-		
-		FieldTypeDiscoverer uiPanelTypeDiscoverer = new FieldTypeDiscoverer("panel");
-		FieldTypeDiscoverer uiComponentTypeDiscoverer = new FieldTypeDiscoverer("launchButton", uiPanelTypeDiscoverer);
-		InterfaceTypeDiscoverer uiActionListenerTypeDiscoverer = new InterfaceTypeDiscoverer(glLauncherActionListenerInterfaceIndex, uiComponentTypeDiscoverer);
-		
-		cr.accept(uiActionListenerTypeDiscoverer, ClassReader.SKIP_FRAMES);
-		
-		uiPanelType = uiPanelTypeDiscoverer.getFieldType();
-		uiComponentType = uiComponentTypeDiscoverer.getFieldType();
-		uiActionListenerType = uiActionListenerTypeDiscoverer.getInterfaceType();
-		
-		
-		
-		
-		
-		
-		
-		
 		testLauncherManipulation(cc);
 	}
 	
 	public void testLauncherManipulation(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
-		String launcherClassname = "com.fs.starfarer.launcher.opengl.GLLauncher";
 		
-		ClassReader cr = new ClassReader(cc.getClass(launcherClassname));
+		StarsectorTypes types = cc.getObfuscatedTypes();
+		
+		ClassReader cr = new ClassReader(cc.getClass(types.glLauncherClassName));
 
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
@@ -106,11 +68,11 @@ public class UiEditor implements Opcodes {
 		
 		MethodNode newMethod = new MethodNode(createLaunchUI.access, createLaunchUI.name, createLaunchUI.desc, createLaunchUI.signature, exceptions); 
 
-		UiElementIdentifier m = new UiElementIdentifier(ASM5, newMethod, this);
+		UiElementIdentifier m = new UiElementIdentifier(ASM5, newMethod, types);
 
 
 		final LiteralAnalyzingAdapter analyzer = new LiteralAnalyzingAdapter(
-				"com.fs.starfarer.launcher.opengl.GLLauncher", createLaunchUI.access, createLaunchUI.name,
+				types.glLauncherClassName, createLaunchUI.access, createLaunchUI.name,
 				createLaunchUI.desc, m);
 
 		m.setAnalyzer(analyzer);
@@ -122,7 +84,7 @@ public class UiEditor implements Opcodes {
 		
 		cn.accept(cw);
 		
-		cc.saveTransformation(launcherClassname, cw.toByteArray());
+		cc.saveTransformation(types.glLauncherClassName, cw.toByteArray());
 				
 	}
 }
