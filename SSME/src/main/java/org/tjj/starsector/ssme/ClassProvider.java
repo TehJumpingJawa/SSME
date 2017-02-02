@@ -21,7 +21,7 @@ public interface ClassProvider {
 	 * return the discovered names of obfuscated types. 
 	 * @return
 	 */
-	public StarsectorTypes getObfuscatedTypes();
+	public ObfuscationMap getObfuscationMap();
 	
 	/**
 	 * returns whether or not the specified classname exists within the scope of this ClassProvider.

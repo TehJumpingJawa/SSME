@@ -13,7 +13,8 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.tjj.starsector.ssme.ClassAlreadyLoadedException;
 import org.tjj.starsector.ssme.ClassProvider;
-import org.tjj.starsector.ssme.StarsectorTypes;
+import org.tjj.starsector.ssme.ObfuscationMap;
+import org.tjj.starsector.ssme.Unobfuscated;
 import org.tjj.starsector.ssme.asm.discoverers.FieldTypeDiscoverer;
 import org.tjj.starsector.ssme.asm.discoverers.InterfaceTypeDiscoverer;
 
@@ -29,9 +30,9 @@ public class UiEditor implements Opcodes {
 	
 	public void testLauncherManipulation(ClassProvider cc) throws ClassNotFoundException, IOException, ClassAlreadyLoadedException {
 		
-		StarsectorTypes types = cc.getObfuscatedTypes();
+		ObfuscationMap types = cc.getObfuscationMap();
 		
-		ClassReader cr = new ClassReader(cc.getClass(types.glLauncherClassName));
+		ClassReader cr = new ClassReader(cc.getClass(Unobfuscated.Types.glLauncher.getClassName()));
 
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
@@ -72,7 +73,7 @@ public class UiEditor implements Opcodes {
 
 
 		final LiteralAnalyzingAdapter analyzer = new LiteralAnalyzingAdapter(
-				types.glLauncherClassName, createLaunchUI.access, createLaunchUI.name,
+				Unobfuscated.Types.glLauncher.getInternalName(), createLaunchUI.access, createLaunchUI.name,
 				createLaunchUI.desc, m);
 
 		m.setAnalyzer(analyzer);
@@ -84,7 +85,7 @@ public class UiEditor implements Opcodes {
 		
 		cn.accept(cw);
 		
-		cc.saveTransformation(types.glLauncherClassName, cw.toByteArray());
+		cc.saveTransformation(Unobfuscated.Types.glLauncher.getClassName(), cw.toByteArray());
 				
 	}
 }

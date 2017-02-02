@@ -131,7 +131,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
      * version.
      * 
      * @param owner
-     *            the owner's class name.
+     *            the owner's internal class name.
      * @param access
      *            the method's access flags (see {@link Opcodes}).
      * @param name
@@ -159,7 +159,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
      *            the ASM API version implemented by this visitor. Must be one
      *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
      * @param owner
-     *            the owner's class name.
+     *            the owner's internal class name.
      * @param access
      *            the method's access flags (see {@link Opcodes}).
      * @param name

@@ -27,7 +27,7 @@ class TransformationManager implements ClassProvider {
 
 
 
-	public final StarsectorTypes obfuscatedTypes;
+	public final ObfuscationMap obfuscationMap;
 	
 	/**
 	 * the bytes of all transformed classes.
@@ -66,7 +66,7 @@ class TransformationManager implements ClassProvider {
 		
 		modLoader = new ModClassLoader(baseModCp, StarsectorModExpander.class.getClassLoader());
 		
-		obfuscatedTypes = new StarsectorTypes(this);
+		obfuscationMap = new ObfuscationMap(this);
 	}
 	
 	/**
@@ -160,7 +160,7 @@ class TransformationManager implements ClassProvider {
 	}
 
 	@Override
-	public StarsectorTypes getObfuscatedTypes() {
-		return obfuscatedTypes;
+	public ObfuscationMap getObfuscationMap() {
+		return obfuscationMap;
 	}
 }
