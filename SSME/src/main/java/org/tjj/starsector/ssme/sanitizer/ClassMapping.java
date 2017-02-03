@@ -73,8 +73,24 @@ public class ClassMapping implements Opcodes {
 		
 		if(context.inWorkingSet(oldName)) {
 			
-			// 1st check if this is an anonymous or local nested class.
-			if(classNode.outerClass!=null) {
+			String deobfuscatedName = context.getDeobfuscatedName(oldName);
+			
+			if(deobfuscatedName!=null) {
+				// this class has been registered as desiring a meaningful deobfuscated name
+				
+				// record the package structure of the provided meaningful name.
+				// Note there's a bug, and limitation here.
+				// if any package element of the meaningful name triggers the deobfuscation logic, it'll get deobfuscated.
+				// also, meaningful names for classes inside obfuscated classes won't work atm.
+				// TODO
+				final String deobfuscatedPackagePath = deobfuscatePackage(Utils.InternalClassName.getPackage(deobfuscatedName));
+
+				newName = deobfuscatedName;
+			}
+			else if(classNode.outerClass!=null) {
+				// 1st check if this is an anonymous or local nested class.
+				
+				
 				// outerClass is determined by using the class file's EnclosingMethod Attribute
 				// https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.7
 				
@@ -90,6 +106,7 @@ public class ClassMapping implements Opcodes {
 				
 				// all synthetic classes will need their names deobfuscated.
 				if(isObfuscatedClass(context, proposedNewName, simpleClassname, true) || !context.registerOutputName(proposedNewName)) {
+
 					newName = outerClassNewName + "$" + makeDeobfuscatedName();
 					if(!context.registerOutputName(newName)) {
 						throw new RuntimeException("unexpected class naming collision: " + newName);

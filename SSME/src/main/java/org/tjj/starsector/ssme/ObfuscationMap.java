@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableBiMap.Builder;
 public class ObfuscationMap {
 	
 	private BiMap <String, String> obfuscationMap;
-	private BiMap <String,String> deobfuscationMap;
+	private BiMap <String, String> deobfuscationMap;
 	
 	ObfuscationMap(ClassProvider cc) {
 

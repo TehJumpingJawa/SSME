@@ -17,7 +17,6 @@ import java.util.jar.JarFile;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
-import org.tjj.starsector.ssme.Utils.InternalClassName;
 import org.tjj.starsector.ssme.sanitizer.ClassMapping;
 import org.tjj.starsector.ssme.sanitizer.PackageMapping;
 import org.tjj.starsector.ssme.sanitizer.SanitizedWriter;
@@ -239,6 +238,12 @@ public class Sanitizer implements SanitizerContext {
 		return this;
 	}
 	
+	@Override
+	public String getDeobfuscatedName(String obfuscatedName) {
+		return pool.getObfuscationMap().deobfuscate(obfuscatedName);
+	}
+	
+	
 	/**
 	 * Attempts to register the given output name.
 	 * 
@@ -256,11 +261,8 @@ public class Sanitizer implements SanitizerContext {
 	 * DONE this$0 synthetic fields, and Class$0 anonymous classes.
 	 * At the moment they're being deobfuscated due to the '$' symbol.
 	 * 
-	 * @param obfName
-	 * @param pool
+	 * @param classname
 	 * @return
-	 * @throws ClassNotFoundException
-	 * @throws IOException
 	 */
 	@Override
 	public ClassMapping get(String classname) {
@@ -276,6 +278,11 @@ public class Sanitizer implements SanitizerContext {
 		return cm;
 	}
 	
+	/**
+	 * 
+	 * @param classname
+	 * @return
+	 */
 	public ClassMapping getFromWorkingSet(String classname) {
 		if(workingSet.contains(classname)) {
 			return get(classname);

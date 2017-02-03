@@ -64,6 +64,7 @@ public interface SanitizerContext {
 	 */
 //	public boolean isRegisteredOutputName(String proposedNewName);
 
+	public String getDeobfuscatedName(String obfuscatedName);
 	/**
 	 * 
 	 * @return
