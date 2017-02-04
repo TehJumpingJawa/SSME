@@ -23,6 +23,7 @@ import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.tjj.starsector.ssme.ObfuscationMap;
 import org.tjj.starsector.ssme.Utils;
 import org.tjj.starsector.ssme.Utils.InternalClassName;
 import org.tjj.starsector.ssme.asm.KeyWords;
@@ -73,17 +74,16 @@ public class ClassMapping implements Opcodes {
 		
 		if(context.inWorkingSet(oldName)) {
 			
-			String deobfuscatedName = context.getDeobfuscatedName(oldName);
+			ObfuscationMap obfMap = context.getObfuscationMap();
+			
+			String deobfuscatedName = obfMap.deobfuscate(oldName);
 			
 			if(deobfuscatedName!=null) {
 				// this class has been registered as desiring a meaningful deobfuscated name
 				
-				// record the package structure of the provided meaningful name.
-				// Note there's a bug, and limitation here.
-				// if any package element of the meaningful name triggers the deobfuscation logic, it'll get deobfuscated.
-				// also, meaningful names for classes inside obfuscated classes won't work atm.
-				// TODO
-				final String deobfuscatedPackagePath = deobfuscatePackage(Utils.InternalClassName.getPackage(deobfuscatedName));
+				// No need to record the package structure of the provided meaningful name
+				// as it's done at the very beginning of the obfuscation process.
+				//final String deobfuscatedPackagePath = context.recordPackageElements(Utils.InternalClassName.getPackage(deobfuscatedName), false);
 
 				newName = deobfuscatedName;
 			}
@@ -173,7 +173,7 @@ public class ClassMapping implements Opcodes {
 					// must be a top-level class 
 					String simpleClassname =  Utils.InternalClassName.getSimpleName(oldName);
 					
-					final String deobfuscatedPackagePath = deobfuscatePackage(Utils.InternalClassName.getPackage(oldName));
+					final String deobfuscatedPackagePath = context.recordPackageElements(Utils.InternalClassName.getPackage(oldName), null);
 					
 					String proposedNewName = deobfuscatedPackagePath + simpleClassname;
 					if(isObfuscatedClass(context, proposedNewName, simpleClassname, false) || !context.registerOutputName(proposedNewName)) {
@@ -735,71 +735,6 @@ public class ClassMapping implements Opcodes {
 		return methodMap;
 	}
 
-	private StringBuilder constructPackage(String [] packageElements, int upto) {
-		StringBuilder sb = new StringBuilder();
-		for(int i = 0 ;i < upto;i++) {
-			sb.append(packageElements[i]).append('/');
-		}
-		return sb;
-	}
-
-	private String deobfuscatePackage(final String packagePath) {
-		
-		StringBuilder result = null;
-		String [] packageElements = packagePath.split("/");
-		
-		PackageMapping current = context.getRootPackage();
-		
-		for(int i = 0;i < packageElements.length;i++) {
-
-			final String packageElement = packageElements[i];				
-			PackageMapping next = current.subpackages.get(packageElement);
-			
-			if(next==null) {
-				//visiting a new package
-				if(result==null) result = constructPackage(packageElements, i);
-				result.append(packageElement);
-				
-				final String newPackageElement;
-				final boolean obfuscated;
-				if(isObfuscatedPackage(packageElement) || !context.registerOutputName(result.toString())) {
-					newPackageElement = "package" + context.incrementPackageCount();
-					obfuscated = true;
-					result.setLength(result.length()-packageElement.length());
-					result.append(newPackageElement);
-					if(!context.registerOutputName(result.toString())) {
-						throw new RuntimeException("unexpected package naming collision: " + result.toString());
-					}
-				}
-				else {
-					newPackageElement = packageElement;
-					obfuscated = false;
-				}
-				next = new PackageMapping(newPackageElement, obfuscated);
-				current.subpackages.put(packageElement, next);
-
-				result.append('/');
-			}
-			else {
-				if(next.isDeobfuscated()) {
-					if(result==null) result = constructPackage(packageElements, i);
-				}
-				if(result!=null) {
-					result.append(next.getNewName()).append("/");
-				}
-			}
-			current = next;
-		}
-		
-		if(result!=null) {
-			return result.toString();
-		}
-		else {
-			return packagePath;
-		}
-	}	
-	
-
 	private static Set<String> illegalIdentifiers;
 	private static int minIllegalIdentifierLength;
 	private static int maxIllegalIdentifierLength;
@@ -863,7 +798,7 @@ public class ClassMapping implements Opcodes {
 		return false;
 	}
 	
-	private static boolean isObfuscatedPackage(final String name) {
+	public static boolean isObfuscatedPackage(final String name) {
 		
 		// short names just cause naming conflicts that result in the code needing to fully qualify class names
 		// more readable to give them a verbose name.
@@ -890,7 +825,7 @@ public class ClassMapping implements Opcodes {
 		return false;		
 	}
 	
-	private static boolean isObfuscatedMethod(final String name) {
+	public static boolean isObfuscatedMethod(final String name) {
 		// short names just cause naming conflicts that result in the code needing to fully qualify class names
 		// more readable to give them a verbose name.
 		if(name.length()<=1) {
@@ -916,7 +851,7 @@ public class ClassMapping implements Opcodes {
 		return false;		
 	}
 	
-	private static boolean isObfuscatedField(final String name) {
+	public static boolean isObfuscatedField(final String name) {
 		// short names just cause naming conflicts that result in the code needing to fully qualify class names
 		// more readable to give them a verbose name.
 		if(name.length()<=1) {

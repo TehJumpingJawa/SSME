@@ -1,4 +1,4 @@
-package org.tjj.starsector.ssme;
+package org.tjj.starsector.ssme.sanitizer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -17,11 +18,11 @@ import java.util.jar.JarFile;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
-import org.tjj.starsector.ssme.sanitizer.ClassMapping;
-import org.tjj.starsector.ssme.sanitizer.PackageMapping;
-import org.tjj.starsector.ssme.sanitizer.SanitizedWriter;
-import org.tjj.starsector.ssme.sanitizer.SanitizerContext;
-import org.tjj.starsector.ssme.sanitizer.SanitizingVisitor;
+import org.tjj.starsector.ssme.ClassAlreadyLoadedException;
+import org.tjj.starsector.ssme.ClassProvider;
+import org.tjj.starsector.ssme.ObfuscationMap;
+import org.tjj.starsector.ssme.Utils;
+import org.tjj.starsector.ssme.Utils.InternalClassName;
 
 public class Sanitizer implements SanitizerContext {
 
@@ -53,7 +54,7 @@ public class Sanitizer implements SanitizerContext {
 	
 	private final SanitizedWriter writer;
 
-	Sanitizer(final ClassProvider pool, final boolean writeClasses, String... obfuscatedJars) throws IOException, InterruptedException, ExecutionException {
+	public Sanitizer(final ClassProvider pool, final boolean writeClasses, String... obfuscatedJars) throws IOException, InterruptedException, ExecutionException {
 
 		long startTime = System.nanoTime();
 		
@@ -208,9 +209,15 @@ public class Sanitizer implements SanitizerContext {
 		
 		return mapping;
 	}
-	Sanitizer apply() throws ClassAlreadyLoadedException, IOException, ClassNotFoundException, InterruptedException, ExecutionException {
+	public Sanitizer apply() throws ClassAlreadyLoadedException, IOException, ClassNotFoundException, InterruptedException, ExecutionException {
 		final long start = System.nanoTime();
 
+		// before we begin deobfuscating classes, we need to register the package mappings
+		// defined by the meaningful Type names specified in ObfuscationMap.
+		// this is so any obfuscated package elements will have their manually supplied deobfuscated names used by the automatically deobfuscated classes in the same (and sub) packages. 
+		for(Entry<String,String> deobfuscationMapping : getObfuscationMap().deobfuscationMap.entrySet()) {
+			recordPackageElements(Utils.InternalClassName.getPackage(deobfuscationMapping.getKey()), Utils.InternalClassName.getPackage(deobfuscationMapping.getValue())); 
+		}
 		
 		for (String obfName : workingSet) {
 			
@@ -239,8 +246,8 @@ public class Sanitizer implements SanitizerContext {
 	}
 	
 	@Override
-	public String getDeobfuscatedName(String obfuscatedName) {
-		return pool.getObfuscationMap().deobfuscate(obfuscatedName);
+	public ObfuscationMap getObfuscationMap() {
+		return pool.getObfuscationMap();
 	}
 	
 	
@@ -277,6 +284,93 @@ public class Sanitizer implements SanitizerContext {
 		}
 		return cm;
 	}
+	/**
+	 * 
+	 * @param packagePath Current, possibly obfuscated package path
+	 * @param deobfuscatedPath New package path to map to. If null, package elements will be checked for deobfuscation, and new element names generated if necessary.
+	 * @return
+	 */
+	@Override
+	public String recordPackageElements(final String packagePath, String deobfuscatedPath) {
+		
+		StringBuilder result = null;
+		String [] packageElements = packagePath.split("/");
+		String [] deobfuscatedPackageElements = null;
+		
+		if(deobfuscatedPath!=null) {
+			deobfuscatedPackageElements = deobfuscatedPath.split("/");
+			if(deobfuscatedPackageElements.length!=packageElements.length) {
+				throw new RuntimeException("packages are not the same depth");
+			}
+		}
+		
+		PackageMapping current = rootPackage;
+		
+		for(int i = 0;i < packageElements.length;i++) {
+
+			final String packageElement = packageElements[i];				
+			PackageMapping next = current.subpackages.get(packageElement);
+			
+			if(next==null) {
+				//visiting a new package
+				if(result==null) result = constructPackage(packageElements, i);
+				result.append(packageElement);
+				
+				final String newPackageElement;
+				final boolean deobfuscated;
+				
+				if(deobfuscatedPackageElements!=null) {
+					newPackageElement = deobfuscatedPackageElements[i];
+					deobfuscated = !newPackageElement.equals(packageElement);
+				}
+				else {
+					if(ClassMapping.isObfuscatedPackage(packageElement) || !registerOutputName(result.toString())) {
+						newPackageElement = "package" + incrementPackageCount();
+						deobfuscated = true;
+						result.setLength(result.length()-packageElement.length());
+						result.append(newPackageElement);
+						if(!registerOutputName(result.toString())) {
+							throw new RuntimeException("unexpected package naming collision: " + result.toString());
+						}
+					}
+					else {
+						newPackageElement = packageElement;
+						deobfuscated = false;
+					}
+				}
+				
+				next = new PackageMapping(newPackageElement, deobfuscated);
+				current.subpackages.put(packageElement, next);
+
+				result.append('/');
+			}
+			else {
+				if(next.isDeobfuscated()) {
+					if(result==null) result = constructPackage(packageElements, i);
+				}
+				if(result!=null) {
+					result.append(next.getNewName()).append("/");
+				}
+			}
+			current = next;
+		}
+		
+		if(result!=null) {
+			return result.toString();
+		}
+		else {
+			return packagePath;
+		}
+	}		
+	
+
+	private static StringBuilder constructPackage(String [] packageElements, int upto) {
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0 ;i < upto;i++) {
+			sb.append(packageElements[i]).append('/');
+		}
+		return sb;
+	}	
 	
 	/**
 	 * 
@@ -298,7 +392,6 @@ public class Sanitizer implements SanitizerContext {
 		cr.accept(classNode, 0);
 		
 		return classNode;
-		
 	}
 
 	@Override
@@ -330,12 +423,5 @@ public class Sanitizer implements SanitizerContext {
 	@Override
 	public boolean inWorkingSet(String classname) {
 		return workingSet.contains(classname);
-	}
-
-	@Override
-	public PackageMapping getRootPackage() {
-		return rootPackage;
-	}
-
-	
+	}	
 }

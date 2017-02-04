@@ -9,7 +9,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureWriter;
-import org.tjj.starsector.ssme.Sanitizer;
 
 /**
  * This Visitor remaps the names of obfuscated fields & methods 

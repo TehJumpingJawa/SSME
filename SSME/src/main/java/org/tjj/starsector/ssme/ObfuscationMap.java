@@ -1,6 +1,7 @@
 package org.tjj.starsector.ssme;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
@@ -25,8 +26,8 @@ import com.google.common.collect.ImmutableBiMap.Builder;
  */
 public class ObfuscationMap {
 	
-	private BiMap <String, String> obfuscationMap;
-	private BiMap <String, String> deobfuscationMap;
+	public final BiMap <String, String> obfuscationMap;
+	public final BiMap <String, String> deobfuscationMap;
 	
 	ObfuscationMap(ClassProvider cc) {
 

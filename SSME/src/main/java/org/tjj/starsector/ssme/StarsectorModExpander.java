@@ -21,6 +21,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import org.tjj.starsector.ssme.asm.UiEditor;
+import org.tjj.starsector.ssme.sanitizer.Sanitizer;
 import org.tjj.starsector.ssme.ui.AuthorizationUI;
 
 import javassist.CannotCompileException;

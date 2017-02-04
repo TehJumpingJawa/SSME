@@ -1,8 +1,10 @@
 package org.tjj.starsector.ssme.sanitizer;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.objectweb.asm.tree.ClassNode;
+import org.tjj.starsector.ssme.ObfuscationMap;
 
 public interface SanitizerContext {
 
@@ -62,15 +64,15 @@ public interface SanitizerContext {
 	 * @param proposedNewName
 	 * @return
 	 */
-//	public boolean isRegisteredOutputName(String proposedNewName);
+	public ObfuscationMap getObfuscationMap();
 
-	public String getDeobfuscatedName(String obfuscatedName);
 	/**
 	 * 
+	 * @param packagePath
+	 * @param deobfuscate
 	 * @return
 	 */
-	public PackageMapping getRootPackage();
-
+	public String recordPackageElements(String packagePath, String deobfuscatedPath);
 	/**
 	 * 
 	 * @return
