@@ -281,7 +281,15 @@ public class SanitizingVisitor extends ClassVisitor implements Opcodes {
 				ClassMapping cm = demap.getFromWorkingSet(owner);
 				if(cm!=null) {
 					owner = cm.getNewName();
-					String newName = cm.getMethodMap().get(new ClassMapping.Method(name, desc, null));
+					String newName;
+					do {
+						newName = cm.getMethodMap().get(new ClassMapping.Method(name, desc, null));
+						//search super classes; this is necessary for static method invocations
+						// as it appears to be legal for static method invocations to point at a subclass
+						// when the static method itself is declared in a superclass.
+						cm = cm.getSuper();
+					}
+					while(newName==null);
 					name = newName;
 					
 					desc = deobfuscateMethodType(desc);
