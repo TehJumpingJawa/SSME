@@ -14,7 +14,6 @@ import org.objectweb.asm.tree.MethodNode;
 import org.tjj.starsector.ssme.ClassAlreadyLoadedException;
 import org.tjj.starsector.ssme.ClassProvider;
 import org.tjj.starsector.ssme.ObfuscationMap;
-import org.tjj.starsector.ssme.Unobfuscated;
 import org.tjj.starsector.ssme.asm.discoverers.FieldTypeDiscoverer;
 import org.tjj.starsector.ssme.asm.discoverers.InterfaceTypeDiscoverer;
 

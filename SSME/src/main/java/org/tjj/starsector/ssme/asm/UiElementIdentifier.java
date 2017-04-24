@@ -4,7 +4,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.tjj.starsector.ssme.ObfuscationMap;
-import org.tjj.starsector.ssme.Unobfuscated;
 
 public class UiElementIdentifier extends AnalyzableMethodVisitor implements Opcodes {
 

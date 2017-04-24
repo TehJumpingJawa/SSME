@@ -1,4 +1,4 @@
-package org.tjj.starsector.ssme;
+package org.tjj.starsector.ssme.asm;
 
 import org.objectweb.asm.Type;
 
