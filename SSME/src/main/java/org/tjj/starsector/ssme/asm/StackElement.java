@@ -75,22 +75,46 @@ public final class StackElement {
 		return new StackElement("java/lang/String", literalValue,null);
 	}
 	
+	/**
+	 * returns the literal.
+	 * Note there's no safety net here; if it isn't a known literal of the correct type, you'll get an Exception 
+	 * @return
+	 */
 	public double getDouble() {
 		return (Double) literalValue;
 	}
 
+	/**
+	 * returns the literal.
+	 * Note there's no safety net here; if it isn't a known literal of the correct type, you'll get an Exception 
+	 * @return
+	 */
 	public float getFloat() {
 		return (Float) literalValue;
 	}
 
+	/**
+	 * returns the literal.
+	 * Note there's no safety net here; if it isn't a known literal of the correct type, you'll get an Exception 
+	 * @return
+	 */
 	public int getInt() {
 		return (Integer) literalValue;
 	}
 
+	/**
+	 * returns the literal.
+	 * Note there's no safety net here; if it isn't a known literal of the correct type, you'll get an Exception 
+	 * @return
+	 */
 	public long getLong() {
 		return (Long) literalValue;
 	}
 
+	/**
+	 * True only if the literal value of this stack element could be resolved. 
+	 * @return
+	 */
 	public boolean isLiteral() {
 		return literalValue != Literal.UNKNOWN;
 	}
@@ -127,5 +151,21 @@ public final class StackElement {
 	public String toString() {
 		return "source=" + sourceField + ",type=" + type + ",value=" + literalValue;
 	}
+	
+	private static class Literal {
+
+		static final Literal UNKNOWN = new Literal("Unknown");
+		static final Literal NULL = new Literal("null");
+		
+		public final String s;
+		private Literal(String s) {
+			this.s = s;
+		}
+		
+		public String toString() {
+			return s;
+		}
+	}
+	
 
 }

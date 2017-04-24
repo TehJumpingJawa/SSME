@@ -3,6 +3,12 @@ package org.tjj.starsector.ssme.asm;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+/**
+ * Method Visitor for interacting with a LiteralAnalyzingAdapter 
+ * 
+ * @author TehJumpingJawa
+ *
+ */
 public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 
 	private LiteralAnalyzingAdapter analyzer;
@@ -18,9 +24,11 @@ public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 
 	
 	/**
+	 * Same function as {@link #getMethodArgumentInfo(Type[], int)}, but retrieves just a single argument value (as indicated by argIndex)
 	 * 
-	 * @param argTypes
-	 * @param argIndex
+	 * 
+	 * @param argTypes The argument types of the Method occupying the top of the stack
+	 * @param argIndex index of the argument value to return
 	 * @return
 	 */
 	protected StackElement getMethodArgumentInfo(Type [] argTypes, int argIndex) {
@@ -37,12 +45,12 @@ public abstract class AnalyzableMethodVisitor extends MethodVisitor {
 	}
 	
 	/**
-	 * Uses the provided method descriptor to retrieve the argument literals from the current stack state.
+	 * Uses the provided method argument types to retrieve the value of the argument (if known) from the current stack state.
 	 * 
 	 * Should only be called from within subclass implementations of {@link #visitMethodInsn(int, String, String, String, boolean)} 
 	 * 
-	 * @param argTypes method descriptor argument types.
-	 * @return
+	 * @param argTypes The argument types of the Method occupying the top of the stack.
+	 * @return The values of the method arguments, retrieved from the current stack state.
 	 */
 	protected StackElement[] getMethodArgumentInfos(Type [] argTypes) {
 		StackElement [] parameterLiterals = new StackElement[argTypes.length];

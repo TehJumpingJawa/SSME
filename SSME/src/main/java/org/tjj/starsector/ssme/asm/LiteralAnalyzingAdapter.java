@@ -61,7 +61,6 @@ import org.objectweb.asm.Type;
  * 
  * Added support for tracking literal assignments to the stack.
  * 
- * 
  * @author TehJumpingJawa
  */
 public class LiteralAnalyzingAdapter extends MethodVisitor {
