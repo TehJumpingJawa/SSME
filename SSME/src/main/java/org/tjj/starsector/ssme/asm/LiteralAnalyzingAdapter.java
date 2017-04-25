@@ -518,9 +518,9 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
     /**
      * Parses the provided descriptor, and pushes the appropriate stack elements onto the stack.
      * 
-     * For method descriptors, only the return type will be pushed.
+     * For MethodDescriptors, only the ReturnDescriptor portion is pushed.
      * 
-     * @param desc A simple, or method descriptor.
+     * @param desc A simple, orMethodDescriptor
      * @param name The source field of the push, if known.
      */
     private void pushDescriptor(final String desc, String name) {
@@ -589,9 +589,9 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
 
     /**
      * Parses the provided descriptor, and pops the appropriate StackElements from the stack.
-     * Method descriptors will have each of their parameter types popped from the stack.
+     * MethodDescriptors will have only their ParameterDescriptor portion popped from the stack.
      * 
-     * @param desc A simple descriptor, or method descriptor.
+     * @param desc A simple descriptor, or MethodDescriptor
      */
     private void popDescriptor(final String desc) {
         char c = desc.charAt(0);
