@@ -124,7 +124,7 @@ public final class StackElement {
 	public static final StackElement UNKNOWN_LONG = new StackElement(Opcodes.LONG);
 	public static final StackElement UNKNOWN_DOUBLE = new StackElement(Opcodes.DOUBLE);
 	public static final StackElement UNKNOWN_TOP = new StackElement(Opcodes.TOP);
-	public static final StackElement UNKNOWN_UNINITIALIZED_THIS = new StackElement(Opcodes.UNINITIALIZED_THIS);
+	public static final StackElement UNINITIALIZED_THIS = new StackElement(Opcodes.UNINITIALIZED_THIS);
 	public static final StackElement UNKNOWN_OBJECT = new StackElement("java/lang/Object");
 	public static final StackElement UNKNOWN_CLASS = new StackElement("java/lang/Class");
 	public static final StackElement UNKNOWN_METHOD = new StackElement("java/lang/invoke/MethodType");

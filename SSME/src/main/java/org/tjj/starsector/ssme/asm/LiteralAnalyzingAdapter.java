@@ -180,7 +180,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
 
         if ((access & Opcodes.ACC_STATIC) == 0) {
             if ("<init>".equals(name)) {
-                locals.add(StackElement.UNKNOWN_UNINITIALIZED_THIS);
+                locals.add(StackElement.UNINITIALIZED_THIS);
             } else {
                 locals.add(new StackElement(owner));
             }
@@ -259,7 +259,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitInsn(opcode);
         }
-        execute(opcode, 0, null, null);
+        execute(opcode, 0, 0, null, null);
         if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)
                 || opcode == Opcodes.ATHROW) {
             this.locals = null;
@@ -272,7 +272,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitIntInsn(opcode, operand);
         }
-        execute(opcode, operand, null, null);
+        execute(opcode, operand, 0, null, null);
     }
 
     @Override
@@ -280,7 +280,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitVarInsn(opcode, var);
         }
-        execute(opcode, var, null, null);
+        execute(opcode, var, 0, null, null);
     }
 
     @Override
@@ -301,7 +301,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitTypeInsn(opcode, type);
         }
-        execute(opcode, 0, type, null);
+        execute(opcode, 0, 0, type, null);
     }
 
     @Override
@@ -310,7 +310,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitFieldInsn(opcode, owner, name, desc);
         }
-        execute(opcode, 0, desc, name);
+        execute(opcode, 0, 0, desc, name);
     }
 
     @Deprecated
@@ -344,12 +344,14 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             labels = null;
             return;
         }
-        pop(desc);
+        popDescriptor(desc);
         if (opcode != Opcodes.INVOKESTATIC) {
-            Object t = pop();
+        	//pop 'this'
+            StackElement t = pop();
             if (opcode == Opcodes.INVOKESPECIAL && name.charAt(0) == '<') {
-                Object u;
-                if (t == Opcodes.UNINITIALIZED_THIS) {
+            	//constructor
+                final Object u;
+                if (t == StackElement.UNINITIALIZED_THIS) {
                     u = this.owner;
                 } else {
                     u = uninitializedTypes.get(t);
@@ -366,7 +368,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
                 }
             }
         }
-        pushDesc(desc, name);
+        pushDescriptor(desc, name);
         labels = null;
     }
 
@@ -380,8 +382,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             labels = null;
             return;
         }
-        pop(desc);
-        pushDesc(desc, name);
+        popDescriptor(desc);
+        pushDescriptor(desc, name);
         labels = null;
     }
 
@@ -390,7 +392,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitJumpInsn(opcode, label);
         }
-        execute(opcode, 0, null, null);
+        execute(opcode, 0, 0, null, null);
         if (opcode == Opcodes.GOTO) {
             this.locals = null;
             this.stack = null;
@@ -451,7 +453,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitIincInsn(var, increment);
         }
-        execute(Opcodes.IINC, var, null, null);
+        execute(Opcodes.IINC, var, increment, null, null);
     }
 
     @Override
@@ -460,7 +462,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitTableSwitchInsn(min, max, dflt, labels);
         }
-        execute(Opcodes.TABLESWITCH, 0, null, null);
+        execute(Opcodes.TABLESWITCH, 0, 0, null, null);
         this.locals = null;
         this.stack = null;
     }
@@ -471,7 +473,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitLookupSwitchInsn(dflt, keys, labels);
         }
-        execute(Opcodes.LOOKUPSWITCH, 0, null, null);
+        execute(Opcodes.LOOKUPSWITCH, 0, 0, null, null);
         this.locals = null;
         this.stack = null;
     }
@@ -481,7 +483,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         if (mv != null) {
             mv.visitMultiANewArrayInsn(desc, dims);
         }
-        execute(Opcodes.MULTIANEWARRAY, dims, desc, null);
+        execute(Opcodes.MULTIANEWARRAY, dims, 0, desc, null);
     }
 
     @Override
@@ -513,7 +515,15 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         maxStack = Math.max(maxStack, stack.size());
     }
 
-    private void pushDesc(final String desc, String name) {
+    /**
+     * Parses the provided descriptor, and pushes the appropriate stack elements onto the stack.
+     * 
+     * For method descriptors, only the return type will be pushed.
+     * 
+     * @param desc A simple, or method descriptor.
+     * @param name The source field of the push, if known.
+     */
+    private void pushDescriptor(final String desc, String name) {
         int index = desc.charAt(0) == '(' ? desc.indexOf(')') + 1 : 0;
         switch (desc.charAt(index)) {
         case 'V':
@@ -522,15 +532,14 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case 'C':
         case 'B':
         case 'S':
-        case 'I':
-        	;        	
+        case 'I':       	
             push(new StackElement(Opcodes.INTEGER, name));
             return;
         case 'F':
             push(new StackElement(Opcodes.FLOAT, name));
             return;
         case 'J':
-            push(new StackElement(Opcodes.FLOAT, name));
+            push(new StackElement(Opcodes.LONG, name));
             push(new StackElement(Opcodes.TOP, name));
             return;
         case 'D':
@@ -554,10 +563,20 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
     }
 
+    /**
+     * pop the top element from the stack and return it.
+     * @return
+     */
     private StackElement pop() {
         return stack.remove(stack.size() - 1);
     }
 
+    /**
+     * pop n elements from the stack, and return the last one popped.
+     * 
+     * @param n
+     * @return
+     */
     private StackElement pop(final int n) {
         int size = stack.size();
         int end = size - n;
@@ -568,7 +587,13 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         return last;
     }
 
-    private void pop(final String desc) {
+    /**
+     * Parses the provided descriptor, and pops the appropriate StackElements from the stack.
+     * Method descriptors will have each of their parameter types popped from the stack.
+     * 
+     * @param desc A simple descriptor, or method descriptor.
+     */
+    private void popDescriptor(final String desc) {
         char c = desc.charAt(0);
         if (c == '(') {
             int n = 0;
@@ -584,7 +609,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
     }
 
-    private void execute(final int opcode, final int iarg, final String sarg, String name) {
+    private void execute(final int opcode, final int iarg, int increment, final String sarg, String name) {
         if (this.locals == null) {
             labels = null;
             return;
@@ -782,7 +807,7 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop(1);
             t1 = pop();
             if (t1.type instanceof String) {
-                pushDesc(((String) t1.type).substring(1), name);
+                pushDescriptor(((String) t1.type).substring(1), name);
             } else {
                 push(StackElement.UNKNOWN_OBJECT);
             }
@@ -1449,20 +1474,16 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
         break;
         case Opcodes.IINC:
-        	
-        	int index = iarg&0xFFFF;
-        	int inc = iarg>>16;
-        	
-        	StackElement ele = get(index);
+        	StackElement ele = get(iarg);
         	
         	if(ele.isLiteral()) {
         		int val = ele.getInt();
         		
-        		set(index, StackElement.create(val+inc));
+        		set(iarg, StackElement.create(val+increment));
         	}
         	else {
         		// this isn't strictly necessary, as it's guaranteed to be an integer already
-        		set(index, StackElement.UNKNOWN_INTEGER);
+        		set(iarg, StackElement.UNKNOWN_INTEGER);
         	}
             break;
         case Opcodes.I2L:
@@ -1624,17 +1645,17 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.RET:
             throw new RuntimeException("JSR/RET are not supported");
         case Opcodes.GETSTATIC:
-            pushDesc(sarg, name);
+            pushDescriptor(sarg, name);
             break;
         case Opcodes.PUTSTATIC:
-            pop(sarg);
+            popDescriptor(sarg);
             break;
         case Opcodes.GETFIELD:
             pop(1);
-            pushDesc(sarg, name);
+            pushDescriptor(sarg, name);
             break;
         case Opcodes.PUTFIELD:
-            pop(sarg);
+            popDescriptor(sarg);
             pop();
             break;
         case Opcodes.NEW:
@@ -1644,44 +1665,44 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             pop();
             switch (iarg) {
             case Opcodes.T_BOOLEAN:
-                pushDesc("[Z", name);
+                pushDescriptor("[Z", name);
                 break;
             case Opcodes.T_CHAR:
-                pushDesc("[C", name);
+                pushDescriptor("[C", name);
                 break;
             case Opcodes.T_BYTE:
-                pushDesc("[B", name);
+                pushDescriptor("[B", name);
                 break;
             case Opcodes.T_SHORT:
-                pushDesc("[S", name);
+                pushDescriptor("[S", name);
                 break;
             case Opcodes.T_INT:
-                pushDesc("[I", name);
+                pushDescriptor("[I", name);
                 break;
             case Opcodes.T_FLOAT:
-                pushDesc("[F", name);
+                pushDescriptor("[F", name);
                 break;
             case Opcodes.T_DOUBLE:
-                pushDesc("[D", name);
+                pushDescriptor("[D", name);
                 break;
             // case Opcodes.T_LONG:
             default:
-                pushDesc("[J", name);
+                pushDescriptor("[J", name);
                 break;
             }
             break;
         case Opcodes.ANEWARRAY:
             pop();
-            pushDesc("[" + Type.getObjectType(sarg), name);
+            pushDescriptor("[" + Type.getObjectType(sarg), name);
             break;
         case Opcodes.CHECKCAST:
             pop();
-            pushDesc(Type.getObjectType(sarg).getDescriptor(), name);
+            pushDescriptor(Type.getObjectType(sarg).getDescriptor(), name);
             break;
         // case Opcodes.MULTIANEWARRAY:
         default:
             pop(iarg);
-            pushDesc(sarg, name);
+            pushDescriptor(sarg, name);
             break;
         }
         labels = null;
