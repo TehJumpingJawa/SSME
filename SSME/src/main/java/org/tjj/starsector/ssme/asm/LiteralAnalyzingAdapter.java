@@ -672,25 +672,25 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             push(StackElement.NULL);
             break;
         case Opcodes.ICONST_M1:
-        	push(StackElement.M1);
+        	push(StackElement.I_M1);
         	break;
         case Opcodes.ICONST_0:
-        	push(StackElement.I0);
+        	push(StackElement.I_0);
         	break;
         case Opcodes.ICONST_1:
-        	push(StackElement.I1);
+        	push(StackElement.I_1);
         	break;
         case Opcodes.ICONST_2:
-        	push(StackElement.I2);
+        	push(StackElement.I_2);
         	break;
         case Opcodes.ICONST_3:
-        	push(StackElement.I3);
+        	push(StackElement.I_3);
         	break;
         case Opcodes.ICONST_4:
-        	push(StackElement.I4);
+        	push(StackElement.I_4);
         	break;
         case Opcodes.ICONST_5:
-        	push(StackElement.I5);
+        	push(StackElement.I_5);
         	break;
         case Opcodes.BIPUSH:
         	push(StackElement.create((int)(byte)iarg));
@@ -699,28 +699,28 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         	push(StackElement.create((int)(short)iarg));
             break;
         case Opcodes.LCONST_0:
-        	push(StackElement.L0);
+        	push(StackElement.L_0);
         	push(StackElement.UNKNOWN_TOP);
         	break;
         case Opcodes.LCONST_1:
-        	push(StackElement.L1);
+        	push(StackElement.L_1);
         	push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.FCONST_0:
-        	push(StackElement.F0);
+        	push(StackElement.F_0);
             break;
         case Opcodes.FCONST_1:
-        	push(StackElement.F1);
+        	push(StackElement.F_1);
             break;
         case Opcodes.FCONST_2:
-        	push(StackElement.F2);
+        	push(StackElement.F_2);
             break;
         case Opcodes.DCONST_0:
-        	push(StackElement.D0);
+        	push(StackElement.D_0);
         	push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.DCONST_1:
-        	push(StackElement.D1);
+        	push(StackElement.D_1);
         	push(StackElement.UNKNOWN_TOP);
             break;
         case Opcodes.ILOAD:
@@ -792,6 +792,8 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         case Opcodes.ASTORE:
             t1 = pop();
             set(iarg, t1);
+
+            // below is to check if we're overwriting the top word of a double word local.
             if (iarg > 0) {
                 t2 = get(iarg - 1);
                 if (t2.type == Opcodes.LONG || t2.type == Opcodes.DOUBLE) {
@@ -801,10 +803,11 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             break;
         case Opcodes.LSTORE:
         case Opcodes.DSTORE:
-            pop(1);
-            t1 = pop();
+            t1 = pop(2);
             set(iarg, t1);
             set(iarg + 1, StackElement.UNKNOWN_TOP);
+            
+            // below is to check if we're overwriting the top word of a double word local.
             if (iarg > 0) {
                 t2 = get(iarg - 1);
                 if (t2.type == Opcodes.LONG || t2.type == Opcodes.DOUBLE) {
@@ -1079,12 +1082,61 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
         break;
         case Opcodes.FCMPL:
-        	//TODO this can be implemented.
+        {
+        	StackElement ele2 = pop();
+        	StackElement ele1 = pop();
+        	
+        	if(bothKnown(ele2, ele1)) {
+        		float val2 = ele2.getFloat();
+        		float val1 = ele1.getFloat();
+        		
+        		if(val1>val2) {
+        			push(StackElement.I_1);
+        		}
+        		else if(val2==val1) {
+            		push(StackElement.I_0);
+            	}
+            	else if(val1<val2) {
+            		push(StackElement.I_M1);
+            	}
+        		else {
+        			// one, or both are NaN.
+        			push(StackElement.I_M1);        			
+        		}
+        	}
+        	else {
+                push(StackElement.UNKNOWN_INTEGER);
+        	}
+        }
+    	break;
         case Opcodes.FCMPG:
-        	//TODO so can this.
-            pop(2);
-            push(StackElement.UNKNOWN_INTEGER);
-            break;
+        {
+        	StackElement ele2 = pop();
+        	StackElement ele1 = pop();
+        	
+        	if(bothKnown(ele2, ele1)) {
+        		float val2 = ele2.getFloat();
+        		float val1 = ele1.getFloat();
+        		
+        		if(val1>val2) {
+        			push(StackElement.I_1);
+        		}
+        		else if(val2==val1) {
+            		push(StackElement.I_0);
+            	}
+            	else if(val1<val2) {
+            		push(StackElement.I_M1);
+            	}
+        		else {
+        			// one, or both are NaN.
+        			push(StackElement.I_1);        			
+        		}
+        	}
+        	else {
+                push(StackElement.UNKNOWN_INTEGER);
+        	}
+        }
+    	break;
         case Opcodes.LADD:
         {
         	StackElement a = pop(2);
@@ -1397,8 +1449,21 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
         }
         break;
         case Opcodes.IINC:
-        	//TODO this can be determined too.
-            set(iarg, StackElement.UNKNOWN_INTEGER);
+        	
+        	int index = iarg&0xFFFF;
+        	int inc = iarg>>16;
+        	
+        	StackElement ele = get(index);
+        	
+        	if(ele.isLiteral()) {
+        		int val = ele.getInt();
+        		
+        		set(index, StackElement.create(val+inc));
+        	}
+        	else {
+        		// this isn't strictly necessary, as it's guaranteed to be an integer already
+        		set(index, StackElement.UNKNOWN_INTEGER);
+        	}
             break;
         case Opcodes.I2L:
         {
@@ -1476,14 +1541,85 @@ public class LiteralAnalyzingAdapter extends MethodVisitor {
             push(StackElement.UNKNOWN_INTEGER);
             break;
         case Opcodes.LCMP:
-            //TODO this can be known
+        {
+        	StackElement ele2 = pop(2);
+        	StackElement ele1 = pop(2);
+        	
+        	if(bothKnown(ele2, ele1)) {
+        		long val2 = ele2.getLong();
+        		long val1 = ele1.getLong();
+        		
+        		if(val2==val1) {
+        			push(StackElement.I_0);
+        		}
+        		else if(val1>val2) {
+        			push(StackElement.I_1);
+        		}
+        		else {
+        			push(StackElement.I_M1);
+        		}
+        	}
+        	else {
+                push(StackElement.UNKNOWN_INTEGER);
+        	}
+        }
+    	break;
         case Opcodes.DCMPL:
-            //TODO this can be known
+        {
+        	StackElement ele2 = pop(2);
+        	StackElement ele1 = pop(2);
+        	
+        	if(bothKnown(ele2, ele1)) {
+        		double val2 = ele2.getDouble();
+        		double val1 = ele1.getDouble();
+        		
+        		if(val1>val2) {
+        			push(StackElement.I_1);
+        		}
+        		else if(val2==val1) {
+            		push(StackElement.I_0);
+            	}
+            	else if(val1<val2) {
+            		push(StackElement.I_M1);
+            	}
+        		else {
+        			// one, or both are NaN.
+        			push(StackElement.I_M1);        			
+        		}
+        	}
+        	else {
+                push(StackElement.UNKNOWN_INTEGER);
+        	}
+        }
+    	break;
         case Opcodes.DCMPG:
-            //TODO this can be known
-            pop(4);
-            push(StackElement.UNKNOWN_INTEGER);
-            break;
+        {
+        	StackElement ele2 = pop(2);
+        	StackElement ele1 = pop(2);
+        	
+        	if(bothKnown(ele2, ele1)) {
+        		double val2 = ele2.getDouble();
+        		double val1 = ele1.getDouble();
+        		
+        		if(val1>val2) {
+        			push(StackElement.I_1);
+        		}
+        		else if(val2==val1) {
+            		push(StackElement.I_0);
+            	}
+            	else if(val1<val2) {
+            		push(StackElement.I_M1);
+            	}
+        		else {
+        			// one, or both are NaN.
+        			push(StackElement.I_1);        			
+        		}
+        	}
+        	else {
+                push(StackElement.UNKNOWN_INTEGER);
+        	}
+        }
+    	break;
         case Opcodes.JSR:
         case Opcodes.RET:
             throw new RuntimeException("JSR/RET are not supported");

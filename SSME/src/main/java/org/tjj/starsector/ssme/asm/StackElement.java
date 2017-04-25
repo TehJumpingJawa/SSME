@@ -130,23 +130,23 @@ public final class StackElement {
 	public static final StackElement UNKNOWN_METHOD = new StackElement("java/lang/invoke/MethodType");
 	public static final StackElement UNKNOWN_HANDLE = new StackElement("java/lang/invoke/MethodHandle");
 	public static final StackElement NULL = new StackElement(Opcodes.NULL, Literal.NULL,null);
-	public static final StackElement M1 = create(-1);
-	public static final StackElement I0 = create(0);
-	public static final StackElement I1 = create(1);
-	public static final StackElement I2 = create(2);
-	public static final StackElement I3 = create(3);
-	public static final StackElement I4 = create(4);
-	public static final StackElement I5 = create(5);
+	public static final StackElement I_M1 = create(-1);
+	public static final StackElement I_0 = create(0);
+	public static final StackElement I_1 = create(1);
+	public static final StackElement I_2 = create(2);
+	public static final StackElement I_3 = create(3);
+	public static final StackElement I_4 = create(4);
+	public static final StackElement I_5 = create(5);
 
-	public static final StackElement L0 = create((long)0);
-	public static final StackElement L1 = create((long)1);
+	public static final StackElement L_0 = create((long)0);
+	public static final StackElement L_1 = create((long)1);
 
-	public static final StackElement F0 = create((float)0);
-	public static final StackElement F1 = create((float)1);
-	public static final StackElement F2 = create((float)2);
+	public static final StackElement F_0 = create((float)0);
+	public static final StackElement F_1 = create((float)1);
+	public static final StackElement F_2 = create((float)2);
 
-	public static final StackElement D0 = create((double)0);
-	public static final StackElement D1 = create((double)1);
+	public static final StackElement D_0 = create((double)0);
+	public static final StackElement D_1 = create((double)1);
 
 	public String toString() {
 		return "source=" + sourceField + ",type=" + type + ",value=" + literalValue;
