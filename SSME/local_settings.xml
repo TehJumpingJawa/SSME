@@ -7,5 +7,5 @@
 	<packaging>pom</packaging>
 	<properties>
 		<starsector-core>C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core</starsector-core>
-	</properties>	
+	</properties>
 </project>

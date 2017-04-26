@@ -5,6 +5,12 @@
 	<description>Starsector Mod Extender</description>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/scripts</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -97,12 +103,12 @@
 
 	<properties>
 		<!-- versions extracted from dependency declarations because they're needed for launch script filtering -->
-		<!-- did I never implement this?!?!? -->
 		<asm-version>5.1</asm-version>
 		<javassist-version>3.20.0-GA</javassist-version>
 		<guava.version>19.0</guava.version>
-		<jprocess.version>1.6.3</jprocess.version>
-		<auto-value-version>1.2</auto-value-version>
+		<jProcesses.version>1.6.3</jProcesses.version>
+		<WMI4Java.version>1.4.2</WMI4Java.version>
+		<jPowerShell.version>1.5</jPowerShell.version>
 	</properties>
 
 	<dependencies>
@@ -148,12 +154,12 @@
 			<artifactId>javassist</artifactId>
 			<version>${javassist-version}</version>
 		</dependency>
-		
+
 		<dependency>
-		         <groupId>org.jprocesses</groupId>
-		         <artifactId>jProcesses</artifactId>
-		     	<version>${jprocess.version}</version>
-		</dependency>		
+			<groupId>org.jprocesses</groupId>
+			<artifactId>jProcesses</artifactId>
+			<version>${jProcesses.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>ss.libs</groupId>
