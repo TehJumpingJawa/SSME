@@ -222,6 +222,7 @@ public class StarsectorModExpander {
 	 * Application entry point for users that want to attach a debugger.
 	 * @throws InterruptedException 
 	 * @throws ExecutionException 
+	 * @throws SigarException 
 	 */
 	public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassAlreadyLoadedException, IOException, InterruptedException, ExecutionException {
 
@@ -242,6 +243,7 @@ public class StarsectorModExpander {
 		doLauncherPreferencesTransformation(cc);
 
 		Class<?> c = cl.loadClass("com.fs.starfarer.StarfarerLauncher");
+			
 		
 		Method main = c.getMethod("main", String[].class);
 		main.invoke(null, new Object[]{new String[0]});

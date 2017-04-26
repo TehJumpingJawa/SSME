@@ -1,7 +1,6 @@
 package org.tjj.starsector.ssme;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;

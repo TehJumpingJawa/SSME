@@ -1,7 +1,6 @@
 package org.tjj.starsector.ssme.sanitizer;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.objectweb.asm.tree.ClassNode;
 import org.tjj.starsector.ssme.ObfuscationMap;

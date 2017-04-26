@@ -97,9 +97,11 @@
 
 	<properties>
 		<!-- versions extracted from dependency declarations because they're needed for launch script filtering -->
+		<!-- did I never implement this?!?!? -->
 		<asm-version>5.1</asm-version>
 		<javassist-version>3.20.0-GA</javassist-version>
 		<guava.version>19.0</guava.version>
+		<jprocess.version>1.6.3</jprocess.version>
 		<auto-value-version>1.2</auto-value-version>
 	</properties>
 
@@ -146,6 +148,12 @@
 			<artifactId>javassist</artifactId>
 			<version>${javassist-version}</version>
 		</dependency>
+		
+		<dependency>
+		         <groupId>org.jprocesses</groupId>
+		         <artifactId>jProcesses</artifactId>
+		     	<version>${jprocess.version}</version>
+		</dependency>		
 
 		<dependency>
 			<groupId>ss.libs</groupId>

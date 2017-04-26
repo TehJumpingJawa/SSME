@@ -1,7 +1,6 @@
 package org.tjj.starsector.ssme;
 
 import java.io.InputStream;
-import java.util.Map;
 
 public interface ClassProvider {
 
