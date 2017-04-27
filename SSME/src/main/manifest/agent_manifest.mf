@@ -1,2 +1,3 @@
 Sealed: true
 Premain-Class: org.tjj.starsector.ssme.agent.Agent
+Agent-Class: org.tjj.starsector.ssme.agent.Agent

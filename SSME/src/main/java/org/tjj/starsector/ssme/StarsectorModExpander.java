@@ -21,6 +21,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import org.tjj.starsector.ssme.asm.UiEditor;
+import org.tjj.starsector.ssme.installer.Installer;
 import org.tjj.starsector.ssme.sanitizer.Sanitizer;
 import org.tjj.starsector.ssme.ui.AuthorizationUI;
 
@@ -226,6 +227,8 @@ public class StarsectorModExpander {
 	 */
 	public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassAlreadyLoadedException, IOException, InterruptedException, ExecutionException {
 
+		Installer.install();
+		
 		boolean writeClasses = false;
 		if(args.length>0 && args[0].equals("writeClasses")) {
 			writeClasses = true;

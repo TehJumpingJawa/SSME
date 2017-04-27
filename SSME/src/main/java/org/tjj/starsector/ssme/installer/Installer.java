@@ -1,9 +1,9 @@
 package org.tjj.starsector.ssme.installer;
 
+import java.io.File;
 import java.util.List;
 
-import org.jutils.jprocesses.JProcesses;
-import org.jutils.jprocesses.model.ProcessInfo;
+import net.bytebuddy.agent.ByteBuddyAgent;
 
 public class Installer {
 	private Installer() {
@@ -24,18 +24,12 @@ public class Installer {
 	 * @return Whether installation was successful
 	 */
 	public static boolean install() {
-
-		String thisPid = ProcessID.getProcessId();
-
+		// better way of doing it:
+		// replace starfarer_obj.jar with my own implementation that simply
+		// relaunches the VM.
 		
-		List<ProcessInfo> processInfoList = JProcesses.get().fastMode().listProcesses();
-		
-		for (ProcessInfo processInfo : processInfoList) {
-			if(processInfo.getPid().equals(thisPid)) {
-				System.out.println("Commandline: " + processInfo.getCommand());
-				break;
-			}
-		}			
+		ByteBuddyAgent.attach(new File("C:/Users/TehJumpingJawa/git/SSME/SSME/target/Agent.jar"), ProcessID.getProcessId());
+		//it works!
 		
 		return false;
 	}

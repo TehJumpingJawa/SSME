@@ -13,6 +13,10 @@ public class Agent {
 	private Agent() {
 	}
 	
+	public static void agentmain(String agentArgs, Instrumentation inst) {
+		inst.addTransformer(TransformerProxy.getInstance(inst), false);
+	}
+	
 	public static void premain(String agentArgs, Instrumentation inst) {
 		inst.addTransformer(TransformerProxy.getInstance(inst), false);
 	}
